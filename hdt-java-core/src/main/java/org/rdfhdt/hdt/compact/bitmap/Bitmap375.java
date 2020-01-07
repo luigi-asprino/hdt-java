@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -34,6 +34,7 @@ import java.util.Arrays;
 import org.rdfhdt.hdt.hdt.HDTVocabulary;
 import org.rdfhdt.hdt.listener.ProgressListener;
 import org.rdfhdt.hdt.util.BitUtil;
+import org.rdfhdt.hdt.util.SortUtils;
 import org.rdfhdt.hdt.util.io.IOUtil;
 
 /**
@@ -331,9 +332,9 @@ public class Bitmap375 extends Bitmap64 implements ModifiableBitmap {
 		// Search superblock (binary Search)
 		int superBlockIndex;
 		if(superBlocksLong!=null) {
-			superBlockIndex = Arrays.binarySearch(superBlocksLong, x);
+			superBlockIndex = SortUtils.binarySearch(superBlocksLong, x);
 		} else {
-			superBlockIndex = Arrays.binarySearch(superBlocksInt, (int)x);
+			superBlockIndex = SortUtils.binarySearch(superBlocksInt, (int)x);
 		}
 		if(superBlockIndex<0) {
 			// Not found exactly, gives the position where it should be inserted

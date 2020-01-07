@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -42,11 +42,11 @@ public class BitmapTriplesIteratorZ implements IteratorTripleID {
 	private final BitmapTriples triples;
 	private final TripleID pattern;
     private final TripleID returnTriple;
-	private final int patZ;
+	private final long patZ;
 	
 	private AdjacencyList adjY, adjZ;
 	long posZ;
-	private int x, y, z;
+	private long x, y, z;
 	
 	BitmapTriplesIteratorZ(BitmapTriples triples, TripleID pattern) {
 		this.triples = triples;
@@ -87,9 +87,9 @@ public class BitmapTriplesIteratorZ implements IteratorTripleID {
 		long posY = adjZ.findListIndex(posZ);
 		
 		// Set full triple
-		z = (int) adjZ.get(posZ);
-		y = (int) adjY.get(posY);
-		x = (int) adjY.findListIndex(posY)+1;
+		z = adjZ.get(posZ);
+		y = adjY.get(posY);
+		x = adjY.findListIndex(posY)+1;
 		
 		// Go forward finding next appearance
 		posZ = adjZ.findNextAppearance(posZ+1, patZ);

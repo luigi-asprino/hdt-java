@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -108,17 +108,17 @@ public class TripleOrderConvert {
         boolean swap3 = swap3tab[from.ordinal() - 1][to.ordinal() - 1];
 		
         if(swap1){
-            int tmp = triple.getSubject();
+            long tmp = triple.getSubject();
             triple.setSubject(triple.getPredicate());
             triple.setPredicate(tmp);
         }
         if(swap2){
-            int tmp = triple.getSubject();
+            long tmp = triple.getSubject();
             triple.setSubject(triple.getObject());
             triple.setObject(tmp);
         }
         if(swap3){
-            int tmp = triple.getPredicate();
+            long tmp = triple.getPredicate();
             triple.setPredicate(triple.getObject());
             triple.setObject(tmp);
         }

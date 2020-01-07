@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -48,21 +48,22 @@ public class DictionaryCacheArray<T> implements DictionaryCache<T> {
 	}
 	
 	/* (non-Javadoc)
-	 * @see hdt.jena.DictionaryNodeCache#getNode(int)
+	 * @see hdt.jena.DictionaryNodeCache#getNode(long)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public T get(int id) {
+	public T get(long id) {
 		if(array==null) {
 			return null;
 		}
 		if(id>array.length) {
 			return null; // Not found
 		}
-		return (T) array[id-1];
+		return (T) array[(int) (id-1)];
 	}
 	
-	public void put(int id, T node) {
+	@Override
+	public void put(long id, T node) {
 		if(array==null) {
 			array = new Object[(int)capacity];
 		}
@@ -70,10 +71,10 @@ public class DictionaryCacheArray<T> implements DictionaryCache<T> {
 //			System.err.println("Warning: Trying to insert a value in cache out of bounds: "+id + " / "+array.length);
 			return;
 		}
-		if(array[id-1]==null) {
+		if(array[(int) (id-1)]==null) {
 			numentries++;
 		}
-		array[id-1] = node;
+		array[(int) (id-1)] = node;
 	}
 
 	@Override

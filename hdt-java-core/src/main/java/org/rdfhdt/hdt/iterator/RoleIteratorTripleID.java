@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,7 +39,7 @@ import java.util.Iterator;
  * @author mario.arias
  * 
  */
-public class RoleIteratorTripleID implements Iterator<Integer> {
+public class RoleIteratorTripleID implements Iterator<Long> {
 
 	final TripleComponentRole position;
 	final Iterator<TripleID> iterator;
@@ -69,7 +69,7 @@ public class RoleIteratorTripleID implements Iterator<Integer> {
 	 * @see java.util.Iterator#next()
 	 */
 	@Override
-	public Integer next() {
+	public Long next() {
 		switch (position) {
 		case SUBJECT:
 			return iterator.next().getSubject();
@@ -77,10 +77,9 @@ public class RoleIteratorTripleID implements Iterator<Integer> {
 			return iterator.next().getPredicate();
 		case OBJECT:
 			return iterator.next().getObject();
-		default:
-			// Never reached
-			return 0;
 		}
+		// Never reached
+		return 0L;
 	}
 
 	/*

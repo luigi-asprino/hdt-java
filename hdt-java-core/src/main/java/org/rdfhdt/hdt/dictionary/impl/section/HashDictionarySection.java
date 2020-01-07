@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -47,7 +47,7 @@ import org.rdfhdt.hdt.util.string.CompactString;
 public class HashDictionarySection implements TempDictionarySection {
 	public static final int TYPE_INDEX = 1;
 
-	private HashMap<CharSequence, Integer> map;
+	private HashMap<CharSequence, Long> map;
 	private List<CharSequence> list;
 	private int size;
 	boolean sorted;
@@ -69,9 +69,9 @@ public class HashDictionarySection implements TempDictionarySection {
 	 * @see hdt.dictionary.DictionarySection#locate(java.lang.CharSequence)
 	 */
 	@Override
-	public int locate(CharSequence s) {
+	public long locate(CharSequence s) {
 		CompactString compact = new CompactString(s);
-		Integer val = map.get(compact);
+		Long val = map.get(compact);
 		if(val==null) {
 			return 0;
 		}
@@ -82,11 +82,11 @@ public class HashDictionarySection implements TempDictionarySection {
 	 * @see hdt.dictionary.DictionarySection#extract(int)
 	 */
 	@Override
-	public CharSequence extract(int pos) {
+	public CharSequence extract(long pos) {
 		if(pos<=0) {
 			return null;
 		}
-		return list.get(pos-1);
+		return list.get((int) (pos-1));
 	}
 
 	/* (non-Javadoc)
@@ -101,7 +101,7 @@ public class HashDictionarySection implements TempDictionarySection {
 	 * @see hdt.dictionary.DictionarySection#getNumberOfElements()
 	 */
 	@Override
-	public int getNumberOfElements() {
+	public long getNumberOfElements() {
 		return list.size();
 	}
 
@@ -122,9 +122,9 @@ public class HashDictionarySection implements TempDictionarySection {
 	}
 
 	@Override
-    public int add(CharSequence entry) {
+    public long add(CharSequence entry) {
 		CharSequence compact = new CompactString(entry);
-		Integer pos = map.get(compact);
+		Long pos = map.get(compact);
 		if(pos!=null) {
 			// Found return existing ID.
 			return pos;
@@ -132,7 +132,7 @@ public class HashDictionarySection implements TempDictionarySection {
 		
 		// Not found, insert new
 		list.add(compact);
-		map.put(compact, list.size());
+		map.put(compact, (long) list.size());
 		
 		size+=compact.length();
 		sorted = false;
@@ -158,7 +158,7 @@ public class HashDictionarySection implements TempDictionarySection {
 		Collections.sort(list, new CharSequenceComparator());
 		
 		// Update map indexes
-		for(int i=1;i<=getNumberOfElements();i++) {
+		for(long i=1;i<=getNumberOfElements();i++) {
 			map.put(extract(i), i);
 		}
 		

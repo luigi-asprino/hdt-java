@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.util.Comparator;
 
 import org.rdfhdt.hdt.enums.TripleComponentOrder;
+import org.rdfhdt.hdt.util.LongCompare;
 
 
 /**
@@ -57,7 +58,7 @@ public class TripleIDComparator implements Comparator<TripleID>, Serializable {
 	 * @param order
 	 *            The order to compare with
 	 */
-	private TripleIDComparator(TripleComponentOrder order) {
+	public TripleIDComparator(TripleComponentOrder order) {
 		super();
 		this.order = order;
 	}
@@ -77,7 +78,7 @@ public class TripleIDComparator implements Comparator<TripleID>, Serializable {
 		 * Components of the triple. Meaning will be given based on the order
 		 * variable, see below
 		 */
-		int x1 = 0, y1 = 0, z1 = 0, x2 = 0, y2 = 0, z2 = 0;
+		long x1 = 0, y1 = 0, z1 = 0, x2 = 0, y2 = 0, z2 = 0;
 
 		switch (this.order) {
 		case SPO:
@@ -152,13 +153,13 @@ public class TripleIDComparator implements Comparator<TripleID>, Serializable {
 			break;
 		}
 
-		int result = x1 - x2;
+		int result = LongCompare.compare(x1,x2);
 
 		if (result == 0) {
-			result = y1 - y2;
+			result = LongCompare.compare(y1, y2);
 			if (result == 0) {
 				// The third component is different?
-				return z1 - z2;
+				return LongCompare.compare(z1, z2);
 			} else {
 				// the second component is different
 				return result;

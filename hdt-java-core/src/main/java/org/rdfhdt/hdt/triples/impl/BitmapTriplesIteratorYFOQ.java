@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +28,6 @@
 package org.rdfhdt.hdt.triples.impl;
 
 import org.rdfhdt.hdt.compact.bitmap.AdjacencyList;
-import org.rdfhdt.hdt.compact.sequence.DeflateIntegerIterator;
 import org.rdfhdt.hdt.enums.ResultEstimationType;
 import org.rdfhdt.hdt.enums.TripleComponentOrder;
 import org.rdfhdt.hdt.triples.IteratorTripleID;
@@ -45,17 +44,15 @@ import org.rdfhdt.hdt.triples.TripleID;
 public class BitmapTriplesIteratorYFOQ implements IteratorTripleID {
 		private BitmapTriples triples;
 		private TripleID pattern, returnTriple;
-		private int patY;
+		private long patY;
 		
 		private AdjacencyList adjY, adjZ;
 		private long posY;
 		long posZ;
 		private long prevZ, nextZ, maxZ;
-		private int x, y, z;
+		private long x, y, z;
 		
 		private long numOccurrences, numOccurrence, predBase;
-		
-		DeflateIntegerIterator index;
 		
 		public BitmapTriplesIteratorYFOQ(BitmapTriples triples, TripleID pattern) {
 			this.triples = triples;
@@ -104,11 +101,11 @@ public class BitmapTriplesIteratorYFOQ implements IteratorTripleID {
 				posZ = prevZ = adjZ.find(posY);
 				nextZ = adjZ.last(posY); 
 				
-				x = (int) adjY.findListIndex(posY)+1;
-				y = (int) adjY.get(posY);
-	 			z = (int) adjZ.get(posZ);
+				x = adjY.findListIndex(posY)+1;
+				y = adjY.get(posY);
+	 			z = adjZ.get(posZ);
 			} else {
-				z = (int) adjZ.get(posZ);
+				z = adjZ.get(posZ);
 			}
 			posZ++;	
 		
@@ -137,11 +134,11 @@ public class BitmapTriplesIteratorYFOQ implements IteratorTripleID {
 				prevZ = adjZ.find(posY);
 				posZ = nextZ = adjZ.last(posY); 
 				
-				x = (int) adjY.findListIndex(posY)+1;
-				y = (int) adjY.get(posY);
-	 			z = (int) adjZ.get(posZ);
+				x = adjY.findListIndex(posY)+1;
+				y = adjY.get(posY);
+	 			z = adjZ.get(posZ);
 			} else {
-				z = (int) adjZ.get(posZ);
+				z = adjZ.get(posZ);
 				posZ--;
 			}
 			
@@ -161,9 +158,9 @@ public class BitmapTriplesIteratorYFOQ implements IteratorTripleID {
 			posZ = prevZ = adjZ.find(posY);
 			nextZ = adjZ.last(posY);
 			
-			x = (int) adjY.findListIndex(posY)+1;
-			y = (int) adjY.get(posY);
-	        z = (int) adjZ.get(posZ);
+			x = adjY.findListIndex(posY)+1;
+			y = adjY.get(posY);
+	        z = adjZ.get(posZ);
 		}
 
 		/* (non-Javadoc)

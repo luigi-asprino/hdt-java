@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -50,7 +50,7 @@ public class DictionarySectionCacheAll implements DictionarySectionPrivate {
 	private final DictionarySectionPrivate child;
 	private final boolean preload;
 	
-	Map<CharSequence, Integer> cacheString;
+	Map<CharSequence, Long> cacheString;
 	CharSequence [] cacheID; 
 	
 	
@@ -58,15 +58,15 @@ public class DictionarySectionCacheAll implements DictionarySectionPrivate {
 		this.child = child;
 		this.preload = preload;
 		
-		cacheString = new HashMap<>(child.getNumberOfElements() * 2);
-		cacheID = new CharSequence[child.getNumberOfElements()];
+		cacheString = new HashMap<CharSequence, Long>((int) (child.getNumberOfElements()*2));
+		cacheID = new CharSequence[(int) child.getNumberOfElements()];
 
 		if(preload) {
 			Iterator <? extends CharSequence> it = child.getSortedEntries();
-			int pos=0;
+			long pos=0;
 			while(it.hasNext()) {
-				cacheID[pos] = it.next();
-				cacheString.put(cacheID[pos], pos);
+				cacheID[(int) pos] = it.next();
+				cacheString.put(cacheID[(int) pos], pos);
 				pos++;
 			}
 		}
@@ -76,8 +76,8 @@ public class DictionarySectionCacheAll implements DictionarySectionPrivate {
 	 * @see hdt.dictionary.DictionarySection#locate(java.lang.CharSequence)
 	 */
 	@Override
-	public int locate(CharSequence s) {
-		Integer o = cacheString.get(s);
+	public long locate(CharSequence s) {
+		Long o = cacheString.get(s);
 		if(o==null) {
 			o = child.locate(s);
 			cacheString.put(s, o);
@@ -86,20 +86,20 @@ public class DictionarySectionCacheAll implements DictionarySectionPrivate {
 	}
 
 	/* (non-Javadoc)
-	 * @see hdt.dictionary.DictionarySection#extract(int)
+	 * @see hdt.dictionary.DictionarySection#extract(long)
 	 */
 	@Override
-	public final CharSequence extract(int pos) {
+	public final CharSequence extract(long pos) {
 		if(preload) {
-			return cacheID[pos-1];
+			return cacheID[(int) (pos-1)];
 		} else {
 			if(pos==0) {
 				return null;
 			}
-			CharSequence o = cacheID[pos-1];
+			CharSequence o = cacheID[(int) (pos-1)];
 			if(o==null) {
 				o = child.extract(pos);
-				cacheID[pos-1] = o;
+				cacheID[(int) (pos-1)] = o;
 				//cacheString.put(o, pos);
 			}
 			return o;
@@ -118,7 +118,7 @@ public class DictionarySectionCacheAll implements DictionarySectionPrivate {
 	 * @see hdt.dictionary.DictionarySection#getNumberOfElements()
 	 */
 	@Override
-	public int getNumberOfElements() {
+	public long getNumberOfElements() {
 		return child.getNumberOfElements();
 	}
 

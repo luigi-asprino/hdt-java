@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -43,11 +43,11 @@ public class DictionaryCacheArrayWeak<T> implements DictionaryCache<T> {
 	}
 	
 	/* (non-Javadoc)
-	 * @see hdt.jena.DictionaryNodeCache#getNode(int)
+	 * @see hdt.jena.DictionaryNodeCache#getNode(long)
 	 */
 	@Override
-	public T get(int id) {
-		Reference<T> ref = array[id-1];
+	public T get(long id) {
+		Reference<T> ref = array[(int) (id-1)];
 		if(ref!=null) {
 			return ref.get();
 		}
@@ -55,8 +55,9 @@ public class DictionaryCacheArrayWeak<T> implements DictionaryCache<T> {
 		return null;
 	}
 	
-	public void put(int id, T node) {
-		array[id-1] = new WeakReference<T>(node);
+	@Override
+	public void put(long id, T node) {
+		array[(int) (id-1)] = new WeakReference<T>(node);
 	}
 
 	@Override

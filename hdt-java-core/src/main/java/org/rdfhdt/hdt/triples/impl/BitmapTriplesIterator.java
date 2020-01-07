@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -41,14 +41,13 @@ import org.rdfhdt.hdt.triples.TripleID;
 public class BitmapTriplesIterator implements IteratorTripleID {
 
 	private final BitmapTriples triples;
-	private final TripleID pattern;
-    private final TripleID returnTriple;
-	private int patX, patY, patZ;
+	private final TripleID pattern, returnTriple;
+	private long patX, patY, patZ;
 	
 	private AdjacencyList adjY, adjZ;
 	long posY, posZ, minY, minZ, maxY, maxZ;
 	private long nextY, nextZ;
-	private int x, y, z;
+	private long x, y, z;
 	
 	public BitmapTriplesIterator(BitmapTriples triples, TripleID pattern) {
 		this.triples = triples;
@@ -73,163 +72,183 @@ public class BitmapTriplesIterator implements IteratorTripleID {
 
 	public void newSearch(TripleID pattern) {
 		this.pattern.assign(pattern);
-		
+
 		TripleOrderConvert.swapComponentOrder(this.pattern, TripleComponentOrder.SPO, triples.order);
 		patX = this.pattern.getSubject();
 		patY = this.pattern.getPredicate();
 		patZ = this.pattern.getObject();
-		
+
 		adjY = triples.adjY;
 		adjZ = triples.adjZ;
-		
-//		((BitSequence375)triples.bitmapZ).dump();
-				
+
+		// ((BitSequence375)triples.bitmapZ).dump();
+
 		findRange();
 		goToStart();
 	}
-	
+
 	private void updateOutput() {
 		returnTriple.setAll(x, y, z);
 		TripleOrderConvert.swapComponentOrder(returnTriple, triples.order, TripleComponentOrder.SPO);
 	}
-	
+
 	private void findRange() {
-		if(patX!=0) {
+		if (patX != 0) {
 			// S X X
-			if(patY!=0) {
-				// S P X
-				try {
-					minY = adjY.find(patX-1, patY);
-					maxY = minY+1;
-					if(patZ!=0) {
+			if (patY != 0) {
+				minY = adjY.find(patX - 1, patY);
+				if (minY == -1) {
+					minY = minZ = maxY = maxZ = 0;
+				} else {
+					maxY = minY + 1;
+					if (patZ != 0) {
 						// S P O
-						minZ = adjZ.find(minY,patZ);
-						maxZ = minZ+1;
+						minZ = adjZ.find(minY, patZ);
+						if (minZ == -1) {
+							minY = minZ = maxY = maxZ = 0;
+						} else {
+							maxZ = minZ + 1;
+
+						}
 					} else {
 						// S P ?
 						minZ = adjZ.find(minY);
-						maxZ = adjZ.last(minY)+1;
+						maxZ = adjZ.last(minY) + 1;
 					}
-				} catch (NotFoundException e) {
-					// Item not found in list, no results.
-					minY = minZ = maxY = maxZ = 0;
 				}
+
 			} else {
 				// S ? X
-				minY = adjY.find(patX-1);
+				minY = adjY.find(patX - 1);
 				minZ = adjZ.find(minY);
-				maxY = adjY.last(patX-1)+1;
+				maxY = adjY.last(patX - 1) + 1;
 				maxZ = adjZ.find(maxY);
 			}
 			x = patX;
 		} else {
 			// ? X X
-			minY=0;
-			minZ=0;
+			minY = 0;
+			minZ = 0;
 			maxY = adjY.getNumberOfElements();
 			maxZ = adjZ.getNumberOfElements();
 		}
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see hdt.iterator.IteratorTripleID#hasNext()
 	 */
 	@Override
 	public boolean hasNext() {
-		return posZ<maxZ;
+		return posZ < maxZ;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see hdt.iterator.IteratorTripleID#next()
 	 */
 	@Override
 	public TripleID next() {
-		z = (int) adjZ.get(posZ);
+		z = adjZ.get(posZ);
 		if(posZ==nextZ) {
 			posY++;
-			y = (int) adjY.get(posY);
+			y = adjY.get(posY);
 //			nextZ = adjZ.find(posY+1);
 			nextZ = adjZ.findNext(nextZ)+1;
 			
 			if(posY==nextY) {
 				x++;
-//				nextY = adjY.find(x);
-				nextY = adjY.findNext(nextY)+1;
+				// nextY = adjY.find(x);
+				nextY = adjY.findNext(nextY) + 1;
 			}
 		}
-		
+
 		posZ++;
-		
+
 		updateOutput();
-		
+
 		return returnTriple;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see hdt.iterator.IteratorTripleID#hasPrevious()
 	 */
 	@Override
 	public boolean hasPrevious() {
-		return posZ>minZ;
+		return posZ > minZ;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see hdt.iterator.IteratorTripleID#previous()
 	 */
 	@Override
 	public TripleID previous() {
-		 posZ--;
+		posZ--;
 
-		 posY = adjZ.findListIndex(posZ);
+		posY = adjZ.findListIndex(posZ);
 
-		 z = (int) adjZ.get(posZ);
-		 y = (int) adjY.get(posY);
-		 x = (int) adjY.findListIndex(posY)+1;
+		z = adjZ.get(posZ);
+		y = adjY.get(posY);
+		x = adjY.findListIndex(posY)+1;
 
-		 nextY = adjY.last(x-1)+1;
-		 nextZ = adjZ.last(posY)+1;
+		nextY = adjY.last(x - 1) + 1;
+		nextZ = adjZ.last(posY) + 1;
 
-		 updateOutput();
+		updateOutput();
 
-		 return returnTriple;
+		return returnTriple;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see hdt.iterator.IteratorTripleID#goToStart()
 	 */
 	@Override
 	public void goToStart() {
 		posZ = minZ;
-        posY = adjZ.findListIndex(posZ);
+		posY = adjZ.findListIndex(posZ);
 
-        z = (int) adjZ.get(posZ);
-        y = (int) adjY.get(posY);
-        x = (int) adjY.findListIndex(posY)+1;
+        z = adjZ.get(posZ);
+        y = adjY.get(posY);
+        x = adjY.findListIndex(posY)+1;
 
-        nextY = adjY.last(x-1)+1;
-        nextZ = adjZ.last(posY)+1;
+		nextY = adjY.last(x - 1) + 1;
+		nextZ = adjZ.last(posY) + 1;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see hdt.iterator.IteratorTripleID#estimatedNumResults()
 	 */
 	@Override
 	public long estimatedNumResults() {
-		return maxZ-minZ;
+		return maxZ - minZ;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see hdt.iterator.IteratorTripleID#numResultEstimation()
 	 */
 	@Override
 	public ResultEstimationType numResultEstimation() {
-		if(patX!=0 && patY==0 && patZ!=0) {
-	        return ResultEstimationType.UP_TO;
-	    }
-	    return ResultEstimationType.EXACT;
+		if (patX != 0 && patY == 0 && patZ != 0) {
+			return ResultEstimationType.UP_TO;
+		}
+		return ResultEstimationType.EXACT;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see hdt.iterator.IteratorTripleID#canGoTo()
 	 */
 	@Override
@@ -237,39 +256,45 @@ public class BitmapTriplesIterator implements IteratorTripleID {
 		return pattern.isEmpty();
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see hdt.iterator.IteratorTripleID#goTo(int)
 	 */
 	@Override
 	public void goTo(long pos) {
-		if(!canGoTo()) {
+		if (!canGoTo()) {
 			throw new IllegalAccessError("Cannot goto on this bitmaptriples pattern");
 		}
 
-		if(pos>=adjZ.getNumberOfElements()) { 
+		if (pos >= adjZ.getNumberOfElements()) {
 			throw new ArrayIndexOutOfBoundsException("Cannot goTo beyond last triple");
 		}
 
 		posZ = pos;
 		posY = adjZ.findListIndex(posZ);
 
-		z = (int) adjZ.get(posZ);
-		y = (int) adjY.get(posY);
-		x = (int) adjY.findListIndex(posY)+1;
+		z = adjZ.get(posZ);
+		y = adjY.get(posY);
+		x = adjY.findListIndex(posY)+1;
 
-		nextY = adjY.last(x-1)+1;
-		nextZ = adjZ.last(posY)+1;
+		nextY = adjY.last(x - 1) + 1;
+		nextZ = adjZ.last(posY) + 1;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see hdt.iterator.IteratorTripleID#getOrder()
 	 */
 	@Override
 	public TripleComponentOrder getOrder() {
 		return triples.order;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.util.Iterator#remove()
 	 */
 	@Override

@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -181,7 +181,7 @@ public class PFCDictionarySection implements DictionarySectionPrivate {
 	 * @see hdt.dictionary.DictionarySection#locate(java.lang.CharSequence)
 	 */
 	@Override
-	public int locate(CharSequence str) {
+	public long locate(CharSequence str) {
 		if(text==null || blocks==null) {
 			return 0;
 		}
@@ -267,7 +267,7 @@ public class PFCDictionarySection implements DictionarySectionPrivate {
 	 * @see hdt.dictionary.DictionarySection#extract(int)
 	 */
 	@Override
-	public CharSequence extract(int id) {
+	public CharSequence extract(long id) {
 		if(text==null || blocks==null) {
 			return null;
 		}
@@ -276,8 +276,8 @@ public class PFCDictionarySection implements DictionarySectionPrivate {
 			return null;
 		}
 		
-		int block = (id-1)/blocksize;
-		int stringid = (id-1)%blocksize;
+		int block = (int) ((id-1)/blocksize);
+		int stringid = (int) ((id-1)%blocksize);
 		int pos = (int) blocks.get(block);
  		int len = ByteStringUtil.strlen(text, pos);
 		
@@ -345,7 +345,7 @@ public class PFCDictionarySection implements DictionarySectionPrivate {
 	 * @see hdt.dictionary.DictionarySection#getNumberOfElements()
 	 */
 	@Override
-	public int getNumberOfElements() {
+	public long getNumberOfElements() {
 		return numstrings;
 	}
 

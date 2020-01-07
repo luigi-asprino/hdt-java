@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -73,7 +73,7 @@ public class SequenceLog64 implements DynamicSequence {
 		this.maxvalue = BitUtil.maxVal(numbits);
 		
 		long size = numWordsFor(numbits, capacity);
-		assert size>=0 && size<=Integer.MAX_VALUE;
+		assert size>=0;
 		
 		data = new long[Math.max((int)size,1)];
 	}
@@ -236,9 +236,6 @@ public class SequenceLog64 implements DynamicSequence {
 	
 	@Override
     public void append(long value) {
-
-		assert numentries<Integer.MAX_VALUE;
-		
 		if(value<0 || value>maxvalue) {
 			throw new IllegalArgumentException("Value exceeds the maximum for this data structure");
 		}

@@ -6,8 +6,8 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * License as published by the Free Software Foundation;
+ * version 3.0 of the License.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -139,9 +139,9 @@ public class BitmapTriples implements TriplesPrivate {
 		ModifiableBitmap bitY = new Bitmap375(number);
 		ModifiableBitmap bitZ = new Bitmap375(number);
 		
-		int lastX=0, lastY=0, lastZ=0;
-		int x, y, z;
-		int numTriples=0;
+		long lastX=0, lastY=0, lastZ=0;
+		long x, y, z;
+		long numTriples=0;
 		
 		while(it.hasNext()) {
 			TripleID triple = it.next();
