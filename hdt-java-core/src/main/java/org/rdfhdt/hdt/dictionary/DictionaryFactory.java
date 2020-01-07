@@ -32,11 +32,13 @@ import org.rdfhdt.hdt.dictionary.impl.FourSectionDictionaryBig;
 import org.rdfhdt.hdt.dictionary.impl.HashDictionary;
 import org.rdfhdt.hdt.dictionary.impl.PSFCFourSectionDictionary;
 import org.rdfhdt.hdt.dictionary.impl.PSFCTempDictionary;
+import org.rdfhdt.hdt.dictionary.impl.RocksTempDictionary;
 import org.rdfhdt.hdt.exceptions.IllegalFormatException;
 import org.rdfhdt.hdt.hdt.HDTVocabulary;
 import org.rdfhdt.hdt.options.ControlInfo;
 import org.rdfhdt.hdt.options.HDTOptions;
 import org.rdfhdt.hdt.options.HDTSpecification;
+import org.rocksdb.RocksDBException;
 
 /**
  * Factory that creates Dictionary objects
@@ -46,20 +48,21 @@ public class DictionaryFactory {
 
 	public static final String MOD_DICT_IMPL_HASH = "hash";
 	public static final String MOD_DICT_IMPL_HASH_PSFC = "hashPsfc";
-	public static final String DICTIONARY_TYPE_FOUR_SECTION_BIG ="dictionaryFourBig";
+	public static final String DICTIONARY_TYPE_FOUR_SECTION_BIG = "dictionaryFourBig";
+	public static final String DICTIONARY_TYPE_ROCKS = "dictionaryRocks";
 
-	private DictionaryFactory() {}
+	private DictionaryFactory() {
+	}
 
 	/**
 	 * Creates a default dictionary (HashDictionary)
 	 * 
 	 * @return Dictionary
 	 */
-	public static Dictionary createDefaultDictionary()
-			throws IllegalArgumentException {
+	public static Dictionary createDefaultDictionary() throws IllegalArgumentException {
 		return new FourSectionDictionary(new HDTSpecification());
 	}
-	
+
 	/**
 	 * Creates a default dictionary (HashDictionary)
 	 * 
@@ -67,37 +70,42 @@ public class DictionaryFactory {
 	 */
 	public static TempDictionary createTempDictionary(HDTOptions spec) {
 		String name = spec.get("tempDictionary.impl");
-		
+
 		// Implementations available in the Core
-		if(name==null || "".equals(name) || MOD_DICT_IMPL_HASH.equals(name)) {
+		if (name == null || "".equals(name) || MOD_DICT_IMPL_HASH.equals(name)) {
 			return new HashDictionary(spec);
-		} else if(MOD_DICT_IMPL_HASH_PSFC.equals(name)){
+		} else if (MOD_DICT_IMPL_HASH_PSFC.equals(name)) {
 			return new PSFCTempDictionary(new HashDictionary(spec));
+		} else if (DICTIONARY_TYPE_ROCKS.equals(name)) {
+			try {
+				return new RocksTempDictionary(spec);
+			} catch (RocksDBException e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
 		}
-		throw new IllegalFormatException("Implementation of triples not found for "+name);
+		throw new IllegalFormatException("Implementation of triples not found for " + name);
 	}
-	
+
 	public static DictionaryPrivate createDictionary(HDTOptions spec) {
 		String name = spec.get("dictionary.type");
-		if(name==null || HDTVocabulary.DICTIONARY_TYPE_FOUR_SECTION.equals(name)) {
+		if (name == null || HDTVocabulary.DICTIONARY_TYPE_FOUR_SECTION.equals(name)) {
 			return new FourSectionDictionary(spec);
-		}
-		else if (HDTVocabulary.DICTIONARY_TYPE_FOUR_PSFC_SECTION.equals(name)){
+		} else if (HDTVocabulary.DICTIONARY_TYPE_FOUR_PSFC_SECTION.equals(name)) {
 			return new PSFCFourSectionDictionary(spec);
-		}
-		else if (DICTIONARY_TYPE_FOUR_SECTION_BIG.equals(name)){
+		} else if (DICTIONARY_TYPE_FOUR_SECTION_BIG.equals(name)) {
 			return new FourSectionDictionaryBig(spec);
 		}
-		throw new IllegalFormatException("Implementation of dictionary not found for "+name);
+		throw new IllegalFormatException("Implementation of dictionary not found for " + name);
 	}
-	
+
 	public static DictionaryPrivate createDictionary(ControlInfo ci) {
 		String name = ci.getFormat();
-		if(HDTVocabulary.DICTIONARY_TYPE_FOUR_SECTION.equals(name)) {
+		if (HDTVocabulary.DICTIONARY_TYPE_FOUR_SECTION.equals(name)) {
 			return new FourSectionDictionary(new HDTSpecification());
 		} else if (HDTVocabulary.DICTIONARY_TYPE_FOUR_PSFC_SECTION.equals(name)) {
 			return new PSFCFourSectionDictionary(new HDTSpecification());
 		}
-		throw new IllegalFormatException("Implementation of dictionary not found for "+name);
+		throw new IllegalFormatException("Implementation of dictionary not found for " + name);
 	}
 }

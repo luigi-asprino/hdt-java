@@ -27,74 +27,86 @@
 
 package org.rdfhdt.hdt.triples;
 
+import org.rdfhdt.hdt.exceptions.IllegalFormatException;
 import org.rdfhdt.hdt.hdt.HDTVocabulary;
 import org.rdfhdt.hdt.options.ControlInfo;
 import org.rdfhdt.hdt.options.HDTOptions;
 import org.rdfhdt.hdt.options.HDTSpecification;
 import org.rdfhdt.hdt.triples.impl.BitmapTriples;
+import org.rdfhdt.hdt.triples.impl.RocksTriples;
 import org.rdfhdt.hdt.triples.impl.TriplesList;
+import org.rocksdb.RocksDBException;
 
 /**
  * Factory that creates Triples objects
  * 
  */
 public class TriplesFactory {
-		
-	public static final String TEMP_TRIPLES_IMPL_LIST = "list";
 
-	private TriplesFactory() {}
-	
+	public static final String TEMP_TRIPLES_IMPL_LIST = "list";
+	public static final String TEMP_TRIPLES_ROCKS = "rocks";
+
+	private TriplesFactory() {
+	}
+
 	/**
 	 * Creates a new TempTriples (writable triples structure)
 	 * 
 	 * @return TempTriples
 	 */
-	static public TempTriples createTempTriples(HDTOptions spec) {		
-//		String triplesImpl = spec.get("tempTriples.impl");
+	static public TempTriples createTempTriples(HDTOptions spec) {
+		String triplesImpl = spec.get("tempTriples.impl");
+		
 
 		// Implementations available in the Core
-//		if (triplesImpl==null || triplesImpl.equals("") || TEMP_TRIPLES_IMPL_LIST.equals(triplesImpl)) {
+		if (triplesImpl == null || triplesImpl.equals("") || TEMP_TRIPLES_IMPL_LIST.equals(triplesImpl)) {
 			return new TriplesList(spec);
-//		}
+		} else if (TEMP_TRIPLES_ROCKS.equals(triplesImpl)) {
+			try {
+				return new RocksTriples(spec);
+			} catch (RocksDBException e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
+		}
+		throw new IllegalFormatException("Implementation of triples not found for " + triplesImpl);
 	}
-	
+
 	/**
 	 * Creates a new Triples based on an HDTOptions
 	 * 
-	 * @param specification
-	 *            The HDTOptions to read
+	 * @param specification The HDTOptions to read
 	 * @return Triples
 	 */
 	static public TriplesPrivate createTriples(HDTOptions spec) {
 		String type = spec.get("triples.format");
-		
-		if(type==null) {
+
+		if (type == null) {
 			return new BitmapTriples(spec);
-		} else if(HDTVocabulary.TRIPLES_TYPE_TRIPLESLIST.equals(type)) {
+		} else if (HDTVocabulary.TRIPLES_TYPE_TRIPLESLIST.equals(type)) {
 			return new TriplesList(spec);
-		} else if(HDTVocabulary.TRIPLES_TYPE_BITMAP.equals(type)) {
+		} else if (HDTVocabulary.TRIPLES_TYPE_BITMAP.equals(type)) {
 			return new BitmapTriples(spec);
 		} else {
 			return new BitmapTriples(spec);
 		}
 	}
-	
+
 	/**
 	 * Creates a new Triples based on a ControlInformation
 	 * 
-	 * @param specification
-	 *            The HDTOptions to read
+	 * @param specification The HDTOptions to read
 	 * @return Triples
 	 */
 	public static TriplesPrivate createTriples(ControlInfo ci) {
 		String format = ci.getFormat();
-		
-		if(HDTVocabulary.TRIPLES_TYPE_TRIPLESLIST.equals(format)) {
+
+		if (HDTVocabulary.TRIPLES_TYPE_TRIPLESLIST.equals(format)) {
 			return new TriplesList(new HDTSpecification());
-		} else if(HDTVocabulary.TRIPLES_TYPE_BITMAP.equals(format)) {
+		} else if (HDTVocabulary.TRIPLES_TYPE_BITMAP.equals(format)) {
 			return new BitmapTriples();
 		} else {
-			throw new IllegalArgumentException("No implementation for Triples type: "+format);
+			throw new IllegalArgumentException("No implementation for Triples type: " + format);
 		}
 	}
 
