@@ -19,7 +19,6 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 	public static final int TYPE_INDEX = 2;
 
 	private RocksMap<CharSequence, Long> map;
-//	private RocksMap<Long, CompactString> inverse;
 	private RocksBigList<CharSequence> list;
 	private int size;
 	boolean sorted = false;
@@ -34,7 +33,7 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 
 	public RocksTempDictionarySection(HDTOptions spec, String dir) throws RocksDBException {
 		map = new RocksMap<>(dir + "/direct", new CharSequenceRocksTransformer(), new LongRocksTransformer());
-		list = new RocksBigList<CharSequence>(dir + "/entryList", new CharSequenceRocksTransformer());
+		list = new RocksBigList<>(dir + "/entryList", new CharSequenceRocksTransformer());
 		size = 0;
 	}
 
@@ -50,12 +49,10 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 
 	@Override
 	public CharSequence extract(long pos) {
-
 		if (pos <= 0) {
 			return null;
 		}
-		return list.get((int) (pos - 1));
-
+		return list.get(pos - 1);
 	}
 
 	@Override
@@ -85,7 +82,6 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 		CompactString compact = new CompactString(entry);
 		Long pos = map.get(compact);
 		if (pos != null) {
-			// Found return existing ID.
 			return pos;
 		}
 
@@ -95,7 +91,6 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 
 		size += compact.length();
 		sorted = false;
-//		list = null;
 
 		return list.size64();
 	}
@@ -127,7 +122,6 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 
 	@Override
 	public void clear() {
-//		list.clear();
 		map.clear();
 		list.clear();
 		size = 0;

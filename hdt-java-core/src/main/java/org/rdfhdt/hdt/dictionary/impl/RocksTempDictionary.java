@@ -2,9 +2,7 @@ package org.rdfhdt.hdt.dictionary.impl;
 
 import java.util.Iterator;
 
-import org.rdfhdt.hdt.dictionary.DictionaryIDMapping;
 import org.rdfhdt.hdt.dictionary.TempDictionarySection;
-import org.rdfhdt.hdt.dictionary.impl.HashDictionary;
 import org.rdfhdt.hdt.dictionary.impl.section.RocksTempDictionarySection;
 import org.rdfhdt.hdt.enums.TripleComponentRole;
 import org.rdfhdt.hdt.options.HDTOptions;
@@ -36,12 +34,9 @@ public class RocksTempDictionary extends HashDictionary {
 	@Override
 	public void reorganize(TempTriples triples) {
 		try {
-			DictionaryIDMapping mapSubj = new RocksDictionaryIDMapping(tempFolder + "/subjRemapping",
-					(RocksTempDictionarySection) subjects);
-			DictionaryIDMapping mapPred = new RocksDictionaryIDMapping(tempFolder + "/predRemapping",
-					(RocksTempDictionarySection) predicates);
-			DictionaryIDMapping mapObj = new RocksDictionaryIDMapping(tempFolder + "/objRemapping",
-					(RocksTempDictionarySection) objects);
+			RocksDictionaryIDMapping mapSubj = new RocksDictionaryIDMapping(tempFolder + "/subjRemapping");
+			RocksDictionaryIDMapping mapPred = new RocksDictionaryIDMapping(tempFolder + "/predRemapping");
+			RocksDictionaryIDMapping mapObj = new RocksDictionaryIDMapping(tempFolder + "/objRemapping");
 
 			StopWatch st = new StopWatch();
 
@@ -56,6 +51,8 @@ public class RocksTempDictionary extends HashDictionary {
 					shared.add(str);
 				}
 			}
+			// System.out.println("Num shared: "+shared.getNumberOfElements()+" in
+			// "+st.stopAndShow());
 
 			// Generate old predicate mapping
 			st.reset();
@@ -79,6 +76,7 @@ public class RocksTempDictionary extends HashDictionary {
 				subjects.remove(sharedStr);
 				objects.remove(sharedStr);
 			}
+			// System.out.println("Mapping generated in "+st.stopAndShow());
 
 			// Sort sections individually
 			st.reset();
@@ -86,24 +84,33 @@ public class RocksTempDictionary extends HashDictionary {
 			predicates.sort();
 			objects.sort();
 			shared.sort();
+			// System.out.println("Sections sorted in "+ st.stopAndShow());
 
 			// Update mappings with new IDs
 			st.reset();
 			for (long j = 0; j < mapSubj.size(); j++) {
 				mapSubj.setNewID(j, this.stringToId(mapSubj.getString(j), TripleComponentRole.SUBJECT));
+//				System.out.print("Subj Old id: "+(j+1) + " New id: "+ mapSubj.getNewID(j)+ " STR: "+mapSubj.getString(j));
 			}
 
 			for (long j = 0; j < mapPred.size(); j++) {
 				mapPred.setNewID(j, this.stringToId(mapPred.getString(j), TripleComponentRole.PREDICATE));
+//				System.out.print("Pred Old id: "+(j+1) + " New id: "+ mapPred.getNewID(j)+ " STR: "+mapPred.getString(j));
 			}
 
 			for (long j = 0; j < mapObj.size(); j++) {
 				mapObj.setNewID(j, this.stringToId(mapObj.getString(j), TripleComponentRole.OBJECT));
+				// System.out.print("Obj Old id: "+(j+1) + " New id: "+ mapObj.getNewID(j)+ "
+				// STR: "+mapObj.getString(j));
 			}
+			// System.out.println("Update mappings in "+st.stopAndShow());
+
 			// Replace old IDs with news
 			triples.replaceAllIds(mapSubj, mapPred, mapObj);
 
+			// System.out.println("Replace IDs in "+st.stopAndShow());
 			isOrganized = true;
+
 		} catch (RocksDBException e) {
 			e.printStackTrace();
 		}
