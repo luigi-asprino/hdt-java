@@ -30,11 +30,13 @@ package org.rdfhdt.hdt.dictionary.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.rdfhdt.hdt.dictionary.DictionaryIDMapping;
+
 /**
  * @author mario.arias
  *
  */
-public class DictionaryIDMapping {
+public class DictionaryIDMappingImpl implements DictionaryIDMapping {
 	class Entry {
 		long newid;
 		final CharSequence str;
@@ -47,30 +49,50 @@ public class DictionaryIDMapping {
 	
 	final List<Entry> list;
 	
-	public DictionaryIDMapping(long numentries) {
+	public DictionaryIDMappingImpl(long numentries) {
 		if(numentries>Integer.MAX_VALUE) {
 			throw new IllegalArgumentException("This mapping class does not support more than 2G entries");
 		}
 		list = new ArrayList<>((int)numentries);
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.rdfhdt.hdt.dictionary.impl.DictionaryIDMappin#add(java.lang.CharSequence)
+	 */
+	@Override
 	public void add(CharSequence str) {
 		list.add(new Entry(str));
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.rdfhdt.hdt.dictionary.impl.DictionaryIDMappin#setNewID(long, long)
+	 */
+	@Override
 	public void setNewID(long oldId, long newID) {
 		list.get((int) oldId).newid = newID;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.rdfhdt.hdt.dictionary.impl.DictionaryIDMappin#getNewID(long)
+	 */
+	@Override
 	public long getNewID(long oldId) {
 		//System.out.println("GetNewID old: "+oldId+"/"+list.size());
 		return list.get((int) oldId).newid;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.rdfhdt.hdt.dictionary.impl.DictionaryIDMappin#getString(long)
+	 */
+	@Override
 	public CharSequence getString(long oldId) {
 		return list.get((int) oldId).str;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.rdfhdt.hdt.dictionary.impl.DictionaryIDMappin#size()
+	 */
+	@Override
 	public long size() {
 		return list.size();
 	}

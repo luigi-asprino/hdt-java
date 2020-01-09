@@ -30,12 +30,12 @@ package org.rdfhdt.hdt.dictionary.impl;
 import java.io.IOException;
 import java.util.Iterator;
 
+import org.rdfhdt.hdt.dictionary.DictionaryIDMapping;
 import org.rdfhdt.hdt.dictionary.TempDictionarySection;
 import org.rdfhdt.hdt.dictionary.impl.section.HashDictionarySection;
 import org.rdfhdt.hdt.enums.TripleComponentRole;
 import org.rdfhdt.hdt.options.HDTOptions;
 import org.rdfhdt.hdt.triples.TempTriples;
-import org.rdfhdt.hdt.triples.TripleID;
 import org.rdfhdt.hdt.util.StopWatch;
 
 /**
@@ -59,9 +59,9 @@ public class HashDictionary extends BaseTempDictionary {
 	 */
 	@Override
 	public void reorganize(TempTriples triples) {
-		DictionaryIDMapping mapSubj = new DictionaryIDMapping(subjects.getNumberOfElements());
-		DictionaryIDMapping mapPred = new DictionaryIDMapping(predicates.getNumberOfElements());
-		DictionaryIDMapping mapObj = new DictionaryIDMapping(objects.getNumberOfElements());
+		DictionaryIDMapping mapSubj = new DictionaryIDMappingImpl(subjects.getNumberOfElements());
+		DictionaryIDMapping mapPred = new DictionaryIDMappingImpl(predicates.getNumberOfElements());
+		DictionaryIDMapping mapObj = new DictionaryIDMappingImpl(objects.getNumberOfElements());
 		
 		StopWatch st = new StopWatch();
 		

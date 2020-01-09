@@ -35,7 +35,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import org.rdfhdt.hdt.dictionary.impl.DictionaryIDMapping;
+import org.rdfhdt.hdt.dictionary.DictionaryIDMapping;
 import org.rdfhdt.hdt.enums.ResultEstimationType;
 import org.rdfhdt.hdt.enums.TripleComponentOrder;
 import org.rdfhdt.hdt.exceptions.NotImplementedException;

@@ -29,7 +29,7 @@ package org.rdfhdt.hdt.triples;
 
 import java.io.Closeable;
 
-import org.rdfhdt.hdt.dictionary.impl.DictionaryIDMapping;
+import org.rdfhdt.hdt.dictionary.DictionaryIDMapping;
 import org.rdfhdt.hdt.enums.TripleComponentOrder;
 import org.rdfhdt.hdt.listener.ProgressListener;
 
