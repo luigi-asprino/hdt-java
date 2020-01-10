@@ -38,7 +38,7 @@ public class RocksDictionaryIDMapping implements DictionaryIDMapping {
 		@Override
 		public Entry transform(byte[] value) {
 			ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-			byte[] longBytes = new byte[Long.BYTES];
+			byte[] longBytes = Arrays.copyOfRange(value, 0, Long.BYTES);
 			buffer.put(longBytes);
 			buffer.flip();
 			Long newid = buffer.getLong();
