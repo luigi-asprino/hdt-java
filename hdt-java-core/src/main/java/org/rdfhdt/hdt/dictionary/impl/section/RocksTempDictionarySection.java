@@ -2,6 +2,7 @@ package org.rdfhdt.hdt.dictionary.impl.section;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.rdfhdt.hdt.dictionary.TempDictionarySection;
 import org.rdfhdt.hdt.options.HDTOptions;
@@ -20,7 +21,8 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 
 	private RocksMap<CharSequence, Long> map;
 	private RocksBigList<CharSequence> list;
-	private int size;
+	private AtomicLong size = new AtomicLong(0);
+
 	boolean sorted = false;
 
 	/**
@@ -34,7 +36,6 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 	public RocksTempDictionarySection(HDTOptions spec, String dir) throws RocksDBException {
 		map = new RocksMap<>(dir + "/direct", new CharSequenceRocksTransformer(), new LongRocksTransformer());
 		list = new RocksBigList<>(dir + "/entryList", new CharSequenceRocksTransformer());
-		size = 0;
 	}
 
 	@Override
@@ -57,7 +58,7 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 
 	@Override
 	public long size() {
-		return size;
+		return size.longValue();
 	}
 
 	@Override
@@ -78,20 +79,17 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 	}
 
 	@Override
-	public long add(CharSequence entry) {
+	public synchronized long add(CharSequence entry) {
 		CompactString compact = new CompactString(entry);
 		Long pos = map.get(compact);
 		if (pos != null) {
 			return pos;
 		}
-
 		// Not found, insert new
 		list.add(compact);
 		map.put(compact, list.size64());
-
-		size += compact.length();
+		size.addAndGet(compact.length());
 		sorted = false;
-
 		return list.size64();
 	}
 
@@ -124,7 +122,7 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 	public void clear() {
 		map.clear();
 		list.clear();
-		size = 0;
+		size = new AtomicLong(0);
 		list = null; // because if sorted won't be anymore
 	}
 

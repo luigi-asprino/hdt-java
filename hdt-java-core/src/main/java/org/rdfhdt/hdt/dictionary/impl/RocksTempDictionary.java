@@ -37,6 +37,9 @@ public class RocksTempDictionary extends HashDictionary {
 	 */
 	@Override
 	public void reorganize(TempTriples triples) {
+
+		logger.info("Reorganising Dictionary");
+
 		try {
 			RocksDictionaryIDMapping mapSubj = new RocksDictionaryIDMapping(tempFolder + "/subjRemapping");
 			RocksDictionaryIDMapping mapPred = new RocksDictionaryIDMapping(tempFolder + "/predRemapping");
@@ -156,8 +159,8 @@ public class RocksTempDictionary extends HashDictionary {
 
 			// Replace old IDs with news
 			triples.replaceAllIds(mapSubj, mapPred, mapObj);
-			
-			logger.info("new ids replaced in triples");
+
+			logger.info("new ids replaced in triples (# " + triples.getNumberOfElements() + ")");
 
 			// System.out.println("Replace IDs in "+st.stopAndShow());
 			isOrganized = true;

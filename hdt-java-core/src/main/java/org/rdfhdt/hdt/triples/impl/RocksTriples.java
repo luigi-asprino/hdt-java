@@ -5,7 +5,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.rdfhdt.hdt.dictionary.DictionaryIDMapping;
 import org.rdfhdt.hdt.enums.ResultEstimationType;
 import org.rdfhdt.hdt.enums.TripleComponentOrder;
@@ -38,9 +41,11 @@ public class RocksTriples implements TempTriples {
 	/** The array to hold the triples */
 	private RocksBigList<TripleID> arrayOfTriples;
 
+	private static final Logger logger = LogManager.getLogger(RocksTriples.class);
+
 	/** The order of the triples */
 	private TripleComponentOrder order;
-	private long numValidTriples;
+	private AtomicLong numValidTriples;
 
 	private boolean sorted = false;
 
@@ -67,7 +72,7 @@ public class RocksTriples implements TempTriples {
 		}
 		this.order = TripleComponentOrder.valueOf(orderStr);
 
-		this.numValidTriples = 0;
+		this.numValidTriples = new AtomicLong(0L);
 	}
 
 	/**
@@ -117,7 +122,7 @@ public class RocksTriples implements TempTriples {
 	 */
 	@Override
 	public long getNumberOfElements() {
-		return numValidTriples;
+		return numValidTriples.longValue();
 	}
 
 	/*
@@ -139,7 +144,7 @@ public class RocksTriples implements TempTriples {
 	public void save(OutputStream output, ControlInfo controlInformation, ProgressListener listener)
 			throws IOException {
 		controlInformation.clear();
-		controlInformation.setInt("numTriples", numValidTriples);
+		controlInformation.setInt("numTriples", numValidTriples.longValue());
 		controlInformation.setFormat(HDTVocabulary.TRIPLES_TYPE_TRIPLESLIST);
 		controlInformation.setInt("order", order.ordinal());
 		controlInformation.save(output);
@@ -173,7 +178,7 @@ public class RocksTriples implements TempTriples {
 		while (numRead < totalTriples) {
 			arrayOfTriples.add(new TripleID(IOUtil.readLong(input), IOUtil.readLong(input), IOUtil.readLong(input)));
 			numRead++;
-			numValidTriples++;
+			numValidTriples.incrementAndGet();
 			ListenerUtil.notifyCond(listener, "Loading TriplesList", numRead, totalTriples);
 		}
 
@@ -190,7 +195,7 @@ public class RocksTriples implements TempTriples {
 		IteratorTripleID iterator = input.searchAll();
 		while (iterator.hasNext()) {
 			arrayOfTriples.add(iterator.next());
-			numValidTriples++;
+			numValidTriples.incrementAndGet();
 		}
 
 		sorted = false;
@@ -220,7 +225,7 @@ public class RocksTriples implements TempTriples {
 	public boolean insert(TripleID... triples) {
 		for (TripleID triple : triples) {
 			arrayOfTriples.add(new TripleID(triple));
-			numValidTriples++;
+			numValidTriples.incrementAndGet();
 		}
 		sorted = false;
 		return true;
@@ -234,7 +239,7 @@ public class RocksTriples implements TempTriples {
 	@Override
 	public boolean insert(long subject, long predicate, long object) {
 		arrayOfTriples.add(new TripleID(subject, predicate, object));
-		numValidTriples++;
+		numValidTriples.incrementAndGet();
 		sorted = false;
 		return true;
 	}
@@ -252,7 +257,7 @@ public class RocksTriples implements TempTriples {
 				if (triple.match(pattern)) {
 					triple.clear();
 					removed = true;
-					numValidTriples--;
+					numValidTriples.decrementAndGet();
 					break;
 				}
 			}
@@ -268,11 +273,12 @@ public class RocksTriples implements TempTriples {
 	 */
 	@Override
 	public void sort(ProgressListener listener) {
+		logger.info("Sorting triples");
 		if (!sorted) {
 			arrayOfTriples.sort(TripleIDComparator.getComparator(order));
-//			Collections.sort(arrayOfTriples, TripleIDComparator.getComparator(order));
 		}
 		sorted = true;
+		logger.info("Triples sorted");
 	}
 
 	/**
@@ -288,9 +294,12 @@ public class RocksTriples implements TempTriples {
 			throw new IllegalArgumentException("Cannot remove duplicates unless sorted");
 		}
 
-		int j = 0;
+		logger.info("Removing duplicates");
+		logger.info("Number of triples " + arrayOfTriples.size64());
 
-		for (int i = 1; i < arrayOfTriples.size64(); i++) {
+		long j = 0;
+
+		for (long i = 1; i < arrayOfTriples.size64(); i++) {
 			if (arrayOfTriples.get(i).compareTo(arrayOfTriples.get(j)) != 0) {
 				j++;
 				arrayOfTriples.set(j, arrayOfTriples.get(i));
@@ -298,11 +307,12 @@ public class RocksTriples implements TempTriples {
 			ListenerUtil.notifyCond(listener, "Removing duplicate triples", i, arrayOfTriples.size64());
 		}
 
+		logger.info("Number of triples " + arrayOfTriples.size64());
+
 		while (arrayOfTriples.size64() > j + 1) {
 			arrayOfTriples.remove(arrayOfTriples.size64() - 1);
 		}
-//		arrayOfTriples.trimToSize();
-		numValidTriples = j + 1;
+		numValidTriples.set(j + 1);
 	}
 
 	/*
@@ -333,26 +343,23 @@ public class RocksTriples implements TempTriples {
 
 	@Override
 	public void generateIndex(ProgressListener listener) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void loadIndex(InputStream input, ControlInfo ci, ProgressListener listener) throws IOException {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void saveIndex(OutputStream output, ControlInfo ci, ProgressListener listener) throws IOException {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void clear() {
 		this.arrayOfTriples.clear();
-		this.numValidTriples = 0;
+		this.numValidTriples = new AtomicLong(0L);
 		this.order = TripleComponentOrder.Unknown;
 		sorted = false;
 	}

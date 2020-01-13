@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.rdfhdt.hdt.dictionary.TempDictionary;
 import org.rdfhdt.hdt.enums.TripleComponentRole;
 import org.rdfhdt.hdt.exceptions.NotFoundException;
@@ -23,6 +25,8 @@ import org.rdfhdt.hdt.triples.TripleString;
 import org.rdfhdt.hdt.util.StopWatch;
 
 public class TripleWriterHDT implements TripleWriter {
+	
+	private static final Logger logger = LogManager.getLogger(TripleWriterHDT.class);
 
 	private OutputStream out;
 	private boolean close = false;
@@ -79,8 +83,9 @@ public class TripleWriterHDT implements TripleWriter {
 	}
 
 	public void close(ProgressListener listener) throws IOException {
-//		ProgressListener listener=null;
-
+		
+		logger.info("Closing writer");
+		
 		dictionary.endProcessing();
 
 		// Reorganize both the dictionary and the triples
