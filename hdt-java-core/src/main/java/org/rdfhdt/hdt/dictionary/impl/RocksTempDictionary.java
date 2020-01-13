@@ -2,6 +2,8 @@ package org.rdfhdt.hdt.dictionary.impl;
 
 import java.util.Iterator;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.rdfhdt.hdt.dictionary.TempDictionarySection;
 import org.rdfhdt.hdt.dictionary.impl.section.RocksTempDictionarySection;
 import org.rdfhdt.hdt.enums.TripleComponentRole;
@@ -11,6 +13,8 @@ import org.rdfhdt.hdt.util.StopWatch;
 import org.rocksdb.RocksDBException;
 
 public class RocksTempDictionary extends HashDictionary {
+
+	private Logger logger = LogManager.getLogger(RocksTempDictionary.class);
 
 	private String tempFolder;
 
@@ -41,33 +45,51 @@ public class RocksTempDictionary extends HashDictionary {
 			StopWatch st = new StopWatch();
 
 			// Generate old subject mapping
-			Iterator<? extends CharSequence> itSubj = ((TempDictionarySection) subjects).getEntries();
-			while (itSubj.hasNext()) {
-				CharSequence str = itSubj.next();
-				mapSubj.add(str);
+			Runnable rSubj = () -> {
+				Iterator<? extends CharSequence> itSubj = ((TempDictionarySection) subjects).getEntries();
+				while (itSubj.hasNext()) {
+					CharSequence str = itSubj.next();
+					mapSubj.add(str);
 
-				// GENERATE SHARED at the same time
-				if (str.length() > 0 && str.charAt(0) != '"' && objects.locate(str) != 0) {
-					shared.add(str);
+					// GENERATE SHARED at the same time
+					if (str.length() > 0 && str.charAt(0) != '"' && objects.locate(str) != 0) {
+						shared.add(str);
+					}
 				}
-			}
-			// System.out.println("Num shared: "+shared.getNumberOfElements()+" in
-			// "+st.stopAndShow());
+				logger.info("Log ID old subject mapping generated!");
+			};
 
 			// Generate old predicate mapping
 			st.reset();
-			Iterator<? extends CharSequence> itPred = ((TempDictionarySection) predicates).getEntries();
-			while (itPred.hasNext()) {
-				CharSequence str = itPred.next();
-				mapPred.add(str);
-			}
+			Runnable rPred = () -> {
+				Iterator<? extends CharSequence> itPred = ((TempDictionarySection) predicates).getEntries();
+				while (itPred.hasNext()) {
+					CharSequence str = itPred.next();
+					mapPred.add(str);
+				}
+				logger.info("Log ID old predicate mapping generated!");
+			};
 
 			// Generate old object mapping
-			Iterator<? extends CharSequence> itObj = ((TempDictionarySection) objects).getEntries();
-			while (itObj.hasNext()) {
-				CharSequence str = itObj.next();
-				mapObj.add(str);
-			}
+			Runnable rObj = () -> {
+				Iterator<? extends CharSequence> itObj = ((TempDictionarySection) objects).getEntries();
+				while (itObj.hasNext()) {
+					CharSequence str = itObj.next();
+					mapObj.add(str);
+				}
+				logger.info("Log ID old object mapping generated!");
+			};
+			Thread tSubj = new Thread(rSubj);
+			Thread tPred = new Thread(rPred);
+			Thread tObj = new Thread(rObj);
+
+			tSubj.start();
+			tPred.start();
+			tObj.start();
+
+			tSubj.join();
+			tPred.join();
+			tObj.join();
 
 			// Remove shared from subjects and objects
 			Iterator<? extends CharSequence> itShared = ((TempDictionarySection) shared).getEntries();
@@ -76,42 +98,73 @@ public class RocksTempDictionary extends HashDictionary {
 				subjects.remove(sharedStr);
 				objects.remove(sharedStr);
 			}
-			// System.out.println("Mapping generated in "+st.stopAndShow());
 
 			// Sort sections individually
 			st.reset();
-			subjects.sort();
-			predicates.sort();
-			objects.sort();
-			shared.sort();
-			// System.out.println("Sections sorted in "+ st.stopAndShow());
+
+			logger.info("Shared section updated!");
+
+			Thread sortSubj = new Thread(() -> subjects.sort());
+			Thread sortPred = new Thread(() -> predicates.sort());
+			Thread sortObj = new Thread(() -> objects.sort());
+			Thread sortSha = new Thread(() -> shared.sort());
+
+			sortSubj.start();
+			sortPred.start();
+			sortObj.start();
+			sortSha.start();
+
+			sortSubj.join();
+			sortPred.join();
+			sortObj.join();
+			sortSha.join();
+
+			logger.info("Sections sorted");
 
 			// Update mappings with new IDs
 			st.reset();
-			for (long j = 0; j < mapSubj.size(); j++) {
-				mapSubj.setNewID(j, this.stringToId(mapSubj.getString(j), TripleComponentRole.SUBJECT));
-//				System.out.print("Subj Old id: "+(j+1) + " New id: "+ mapSubj.getNewID(j)+ " STR: "+mapSubj.getString(j));
-			}
+			Runnable updateIdSubj = () -> {
+				for (long j = 0; j < mapSubj.size(); j++) {
+					mapSubj.setNewID(j, this.stringToId(mapSubj.getString(j), TripleComponentRole.SUBJECT));
+				}
+				logger.info("subject mapping updated!");
+			};
+			Runnable updateIdPred = () -> {
+				for (long j = 0; j < mapPred.size(); j++) {
+					mapPred.setNewID(j, this.stringToId(mapPred.getString(j), TripleComponentRole.PREDICATE));
+				}
+				logger.info("predicate mapping updated!");
+			};
+			Runnable updateIdObje = () -> {
+				for (long j = 0; j < mapObj.size(); j++) {
+					mapObj.setNewID(j, this.stringToId(mapObj.getString(j), TripleComponentRole.OBJECT));
+				}
+				logger.info("object mapping updated!");
+			};
 
-			for (long j = 0; j < mapPred.size(); j++) {
-				mapPred.setNewID(j, this.stringToId(mapPred.getString(j), TripleComponentRole.PREDICATE));
-//				System.out.print("Pred Old id: "+(j+1) + " New id: "+ mapPred.getNewID(j)+ " STR: "+mapPred.getString(j));
-			}
+			Thread uSubj = new Thread(updateIdSubj);
+			Thread uPred = new Thread(updateIdPred);
+			Thread uObj = new Thread(updateIdObje);
 
-			for (long j = 0; j < mapObj.size(); j++) {
-				mapObj.setNewID(j, this.stringToId(mapObj.getString(j), TripleComponentRole.OBJECT));
-				// System.out.print("Obj Old id: "+(j+1) + " New id: "+ mapObj.getNewID(j)+ "
-				// STR: "+mapObj.getString(j));
-			}
-			// System.out.println("Update mappings in "+st.stopAndShow());
+			uSubj.start();
+			uPred.start();
+			uObj.start();
+
+			uSubj.join();
+			uPred.join();
+			uObj.join();
 
 			// Replace old IDs with news
 			triples.replaceAllIds(mapSubj, mapPred, mapObj);
+			
+			logger.info("new ids replaced in triples");
 
 			// System.out.println("Replace IDs in "+st.stopAndShow());
 			isOrganized = true;
 
 		} catch (RocksDBException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
