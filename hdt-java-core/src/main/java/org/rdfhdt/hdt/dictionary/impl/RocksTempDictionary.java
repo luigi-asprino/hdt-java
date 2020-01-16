@@ -37,6 +37,8 @@ public class RocksTempDictionary extends HashDictionary {
 	 */
 	@Override
 	public void reorganize(TempTriples triples) {
+		// TODO use fork/join pool instead of Thread
+//		ForkJoinPool pool = ForkJoinPool.commonPool();
 
 		logger.info("Reorganising Dictionary");
 
@@ -82,6 +84,7 @@ public class RocksTempDictionary extends HashDictionary {
 				}
 				logger.info("Log ID old object mapping generated!");
 			};
+
 			Thread tSubj = new Thread(rSubj);
 			Thread tPred = new Thread(rPred);
 			Thread tObj = new Thread(rObj);

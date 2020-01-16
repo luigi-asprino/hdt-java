@@ -18,6 +18,12 @@
  */
 package org.rdfhdt.hdt.compact.sequence;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import org.rdfhdt.hdt.compact.integer.VByte;
 import org.rdfhdt.hdt.hdt.HDTVocabulary;
 import org.rdfhdt.hdt.listener.ProgressListener;
@@ -27,11 +33,6 @@ import org.rdfhdt.hdt.util.crc.CRC8;
 import org.rdfhdt.hdt.util.crc.CRCOutputStream;
 import org.rdfhdt.hdt.util.disk.LongArrayDisk;
 import org.rdfhdt.hdt.util.io.IOUtil;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
 
 public class SequenceLog64BigDisk implements DynamicSequence {
     private static final byte W = 64;

@@ -29,7 +29,6 @@ package org.rdfhdt.hdt.compact.bitmap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 
 import org.rdfhdt.hdt.hdt.HDTVocabulary;
 import org.rdfhdt.hdt.listener.ProgressListener;

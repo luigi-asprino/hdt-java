@@ -33,7 +33,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 
 import org.rdfhdt.hdt.dictionary.DictionaryIDMapping;
 import org.rdfhdt.hdt.enums.ResultEstimationType;

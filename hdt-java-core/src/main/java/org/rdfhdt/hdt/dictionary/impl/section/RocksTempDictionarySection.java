@@ -3,7 +3,10 @@ package org.rdfhdt.hdt.dictionary.impl.section;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.LongStream;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.rdfhdt.hdt.dictionary.TempDictionarySection;
 import org.rdfhdt.hdt.options.HDTOptions;
 import org.rdfhdt.hdt.options.HDTSpecification;
@@ -22,6 +25,8 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 	private RocksMap<CharSequence, Long> map;
 	private RocksBigList<CharSequence> list;
 	private AtomicLong size = new AtomicLong(0);
+
+	private Logger logger = LogManager.getLogger(RocksTempDictionarySection.class);
 
 	boolean sorted = false;
 
@@ -103,13 +108,24 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 	public void sort() {
 		// Update list.
 		list.clear();
-		map.iterator().forEachRemaining(e -> list.add(e.getKey()));
+		logger.info("Section List Cleant");
+//		map.iterator().forEachRemaining(e -> list.add(e.getKey()));
+		map.keyIterator().forEachRemaining(e -> list.add(e));
+		logger.info("Section List Updated");
 
 		list.sort(new CharSequenceComparator());
+		logger.info("Section List Sorted");
 
-		for (long i = 0; i < list.size64(); i++) {
+//		for (long i = 0; i < list.size64(); i++) {
+//			map.put(new CompactString(list.get(i)), i + 1);
+//		}
+
+		LongStream.range(0, list.size64()).parallel().forEach(i -> {
 			map.put(new CompactString(list.get(i)), i + 1);
-		}
+		});
+		logger.info("Section Map Updated");
+		
+		sorted = true;
 
 	}
 
