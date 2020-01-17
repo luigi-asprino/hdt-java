@@ -38,7 +38,7 @@ public class RocksTempDictionary extends HashDictionary {
 	@Override
 	public void reorganize(TempTriples triples) {
 		// TODO use fork/join pool instead of Thread
-//		ForkJoinPool pool = ForkJoinPool.commonPool();
+//		Executor e = Executors.newCachedThreadPool()
 
 		logger.info("Reorganising Dictionary");
 
