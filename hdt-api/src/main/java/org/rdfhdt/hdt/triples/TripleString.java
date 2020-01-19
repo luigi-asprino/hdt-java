@@ -224,7 +224,7 @@ public class TripleString {
 			// as-is.
 			if (posb > posa && line.charAt(posb - 1) == '>') {
 				posb--;
-				if ((posc = line.substring(posa, posb).indexOf('>')) != -1) { // true in case of quads
+				if ((posc = line.substring(posa, posb).indexOf('>')) != -1) { // true in case of quads //TODO check for literal object
 					posb = posa + posc;
 				}
 			}
