@@ -1,6 +1,7 @@
 package org.rdfhdt.hdt.dictionary.impl;
 
 import java.util.Iterator;
+import java.util.stream.LongStream;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -97,6 +98,8 @@ public class RocksTempDictionary extends HashDictionary {
 			tPred.join();
 			tObj.join();
 
+			System.gc();
+
 			// Remove shared from subjects and objects
 			Iterator<? extends CharSequence> itShared = ((TempDictionarySection) shared).getEntries();
 			while (itShared.hasNext()) {
@@ -125,26 +128,37 @@ public class RocksTempDictionary extends HashDictionary {
 			sortObj.join();
 			sortSha.join();
 
+			System.gc();
+
 			logger.info("Sections sorted");
 
 			// Update mappings with new IDs
 			st.reset();
 			Runnable updateIdSubj = () -> {
-				for (long j = 0; j < mapSubj.size(); j++) {
+//				for (long j = 0; j < mapSubj.size(); j++) {
+//					mapSubj.setNewID(j, this.stringToId(mapSubj.getString(j), TripleComponentRole.SUBJECT));
+//				}
+				LongStream.range(0, mapSubj.size()).parallel().forEach(j -> {
 					mapSubj.setNewID(j, this.stringToId(mapSubj.getString(j), TripleComponentRole.SUBJECT));
-				}
+				});
 				logger.info("subject mapping updated!");
 			};
 			Runnable updateIdPred = () -> {
-				for (long j = 0; j < mapPred.size(); j++) {
+//				for (long j = 0; j < mapPred.size(); j++) {
+//					mapPred.setNewID(j, this.stringToId(mapPred.getString(j), TripleComponentRole.PREDICATE));
+//				}
+				LongStream.range(0, mapPred.size()).parallel().forEach(j -> {
 					mapPred.setNewID(j, this.stringToId(mapPred.getString(j), TripleComponentRole.PREDICATE));
-				}
+				});
 				logger.info("predicate mapping updated!");
 			};
 			Runnable updateIdObje = () -> {
-				for (long j = 0; j < mapObj.size(); j++) {
+//				for (long j = 0; j < mapObj.size(); j++) {
+//					mapObj.setNewID(j, this.stringToId(mapObj.getString(j), TripleComponentRole.OBJECT));
+//				}
+				LongStream.range(0, mapObj.size()).parallel().forEach(j -> {
 					mapObj.setNewID(j, this.stringToId(mapObj.getString(j), TripleComponentRole.OBJECT));
-				}
+				});
 				logger.info("object mapping updated!");
 			};
 
@@ -160,8 +174,21 @@ public class RocksTempDictionary extends HashDictionary {
 			uPred.join();
 			uObj.join();
 
+			System.gc();
+
 			// Replace old IDs with news
 			triples.replaceAllIds(mapSubj, mapPred, mapObj);
+			
+			mapSubj.list.clear();
+			mapSubj.list.close();
+			
+			mapPred.list.clear();
+			mapPred.list.close();
+			
+			mapObj.list.clear();
+			mapObj.list.close();
+
+			System.gc();
 
 			logger.info("new ids replaced in triples (# " + triples.getNumberOfElements() + ")");
 
