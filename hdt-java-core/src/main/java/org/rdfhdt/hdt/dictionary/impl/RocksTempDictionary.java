@@ -1,5 +1,6 @@
 package org.rdfhdt.hdt.dictionary.impl;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.stream.LongStream;
 
@@ -178,13 +179,13 @@ public class RocksTempDictionary extends HashDictionary {
 
 			// Replace old IDs with news
 			triples.replaceAllIds(mapSubj, mapPred, mapObj);
-			
+
 			mapSubj.list.clear();
 			mapSubj.list.close();
-			
+
 			mapPred.list.clear();
 			mapPred.list.close();
-			
+
 			mapObj.list.clear();
 			mapObj.list.close();
 
@@ -198,6 +199,17 @@ public class RocksTempDictionary extends HashDictionary {
 		} catch (RocksDBException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void close() {
+		try {
+			subjects.close();
+			predicates.close();
+			objects.close();
+			shared.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}

@@ -124,7 +124,7 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 			map.put(new CompactString(list.get(i)), i + 1);
 		});
 		logger.info("Section Map Updated");
-		
+
 		sorted = true;
 
 	}
@@ -147,7 +147,6 @@ public class RocksTempDictionarySection implements TempDictionarySection {
 		map.close();
 		map = null;
 		list.close();
-		list = null;
 		list = null;
 	}
 

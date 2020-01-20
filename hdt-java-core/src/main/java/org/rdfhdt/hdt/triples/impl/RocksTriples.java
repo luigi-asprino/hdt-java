@@ -377,7 +377,7 @@ public class RocksTriples implements TempTriples {
 
 	@Override
 	public void close() throws IOException {
-
+		this.arrayOfTriples.close();
 	}
 
 	/**
