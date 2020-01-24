@@ -71,8 +71,9 @@ public class RocksTriples implements TempTriples {
 			orderStr = "SPO";
 		}
 		this.order = TripleComponentOrder.valueOf(orderStr);
+		
 
-		this.numValidTriples = new AtomicLong(0L);
+		this.numValidTriples = new AtomicLong(arrayOfTriples.sizeLong());
 	}
 
 	/**
@@ -102,6 +103,10 @@ public class RocksTriples implements TempTriples {
 		} else {
 			return new SequentialSearchIteratorTripleID(pattern, new TriplesListIterator(this));
 		}
+	}
+	
+	public boolean isSorted() {
+		return this.sorted;
 	}
 
 	/*
@@ -515,6 +520,7 @@ public class RocksTriples implements TempTriples {
 	public void replaceAllIds(DictionaryIDMapping mapSubj, DictionaryIDMapping mapPred, DictionaryIDMapping mapObj) {
 		sorted = false;
 		for (TripleID triple : arrayOfTriples) {
+			//TODO parallelize
 			triple.setAll(mapSubj.getNewID(triple.getSubject() - 1), mapPred.getNewID(triple.getPredicate() - 1),
 					mapObj.getNewID(triple.getObject() - 1));
 		}

@@ -54,6 +54,7 @@ public class RocksTempDictionary extends HashDictionary {
 			// Generate old subject mapping
 			Runnable rSubj = () -> {
 				Iterator<? extends CharSequence> itSubj = ((TempDictionarySection) subjects).getEntries();
+				//TODO parallelize
 				while (itSubj.hasNext()) {
 					CharSequence str = itSubj.next();
 					mapSubj.add(str);
@@ -71,6 +72,7 @@ public class RocksTempDictionary extends HashDictionary {
 			Runnable rPred = () -> {
 				Iterator<? extends CharSequence> itPred = ((TempDictionarySection) predicates).getEntries();
 				while (itPred.hasNext()) {
+					//TODO parallelize
 					CharSequence str = itPred.next();
 					mapPred.add(str);
 				}
@@ -81,6 +83,7 @@ public class RocksTempDictionary extends HashDictionary {
 			Runnable rObj = () -> {
 				Iterator<? extends CharSequence> itObj = ((TempDictionarySection) objects).getEntries();
 				while (itObj.hasNext()) {
+					//TODO parallelize
 					CharSequence str = itObj.next();
 					mapObj.add(str);
 				}
@@ -104,6 +107,7 @@ public class RocksTempDictionary extends HashDictionary {
 			// Remove shared from subjects and objects
 			Iterator<? extends CharSequence> itShared = ((TempDictionarySection) shared).getEntries();
 			while (itShared.hasNext()) {
+				//TODO parallelize
 				CharSequence sharedStr = itShared.next();
 				subjects.remove(sharedStr);
 				objects.remove(sharedStr);
