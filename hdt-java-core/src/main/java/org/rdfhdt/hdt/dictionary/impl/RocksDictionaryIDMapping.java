@@ -20,6 +20,11 @@ public class RocksDictionaryIDMapping implements DictionaryIDMapping {
 			this.str = str;
 			this.newid = 0;
 		}
+
+		@Override
+		public String toString() {
+			return str + " " + newid;
+		}
 	}
 
 	class RocksEntryTransformer implements RocksTransformer<Entry> {
@@ -79,7 +84,9 @@ public class RocksDictionaryIDMapping implements DictionaryIDMapping {
 	 */
 	@Override
 	public void setNewID(long oldId, long newID) {
-		list.get(oldId).newid = newID;
+		Entry e = list.get(oldId);
+		e.newid = newID;
+		list.set(oldId, e);
 	}
 
 	/*

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.LongStream;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -71,7 +72,6 @@ public class RocksTriples implements TempTriples {
 			orderStr = "SPO";
 		}
 		this.order = TripleComponentOrder.valueOf(orderStr);
-		
 
 		this.numValidTriples = new AtomicLong(arrayOfTriples.sizeLong());
 	}
@@ -104,7 +104,7 @@ public class RocksTriples implements TempTriples {
 			return new SequentialSearchIteratorTripleID(pattern, new TriplesListIterator(this));
 		}
 	}
-	
+
 	public boolean isSorted() {
 		return this.sorted;
 	}
@@ -242,8 +242,9 @@ public class RocksTriples implements TempTriples {
 	 * @see hdt.triples.TempTriples#insert(int, int, int)
 	 */
 	@Override
-	public boolean insert(long subject, long predicate, long object) {
-		arrayOfTriples.add(new TripleID(subject, predicate, object));
+	public boolean insert(final long subject, final long predicate, final long object) {
+		TripleID t = new TripleID(subject, predicate, object);
+		arrayOfTriples.add(t);
 		numValidTriples.incrementAndGet();
 		sorted = false;
 		return true;
@@ -312,7 +313,7 @@ public class RocksTriples implements TempTriples {
 			ListenerUtil.notifyCond(listener, "Removing duplicate triples", i, arrayOfTriples.size64());
 		}
 
-		logger.info("Number of triples " + arrayOfTriples.size64());
+
 
 		while (arrayOfTriples.size64() > j + 1) {
 			arrayOfTriples.remove(arrayOfTriples.size64() - 1);
@@ -519,11 +520,18 @@ public class RocksTriples implements TempTriples {
 	@Override
 	public void replaceAllIds(DictionaryIDMapping mapSubj, DictionaryIDMapping mapPred, DictionaryIDMapping mapObj) {
 		sorted = false;
-		for (TripleID triple : arrayOfTriples) {
-			//TODO parallelize
+
+		LongStream.range(0, arrayOfTriples.sizeLong()).parallel().forEach(i -> {
+			TripleID triple = arrayOfTriples.get(i);
 			triple.setAll(mapSubj.getNewID(triple.getSubject() - 1), mapPred.getNewID(triple.getPredicate() - 1),
 					mapObj.getNewID(triple.getObject() - 1));
-		}
+			arrayOfTriples.set(i, triple);
+		});
+
+//		for (TripleID triple : arrayOfTriples) {
+//			triple.setAll(mapSubj.getNewID(triple.getSubject() - 1), mapPred.getNewID(triple.getPredicate() - 1),
+//					mapObj.getNewID(triple.getObject() - 1));
+//		}
 	}
 
 }

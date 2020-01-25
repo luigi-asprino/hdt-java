@@ -28,7 +28,6 @@
 package org.rdfhdt.hdt.triples;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 import org.rdfhdt.hdt.util.LongCompare;
 
