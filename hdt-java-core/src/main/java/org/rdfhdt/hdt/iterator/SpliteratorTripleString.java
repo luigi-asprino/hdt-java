@@ -18,10 +18,10 @@ public class SpliteratorTripleString implements Spliterator<TripleString> {
 
 	@Override
 	public Spliterator<TripleString> trySplit() {
-		if (estimatedSize > smallestSegment) {
-			return new SpliteratorTripleString(baseIterator, estimatedSize / 2);
+		if (baseIterator.hasNext() && estimatedSize > smallestSegment) {
+			long splitted = (estimatedSize / 2);
+			return new SpliteratorTripleString(baseIterator, splitted);
 		}
-
 		return null;
 	}
 
@@ -32,7 +32,7 @@ public class SpliteratorTripleString implements Spliterator<TripleString> {
 
 	@Override
 	public int characteristics() {
-		return 0;
+		return Spliterator.DISTINCT | Spliterator.NONNULL | Spliterator.SIZED | Spliterator.SUBSIZED;
 	}
 
 	@Override
