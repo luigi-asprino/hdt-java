@@ -107,4 +107,8 @@ public class ListTripleIDIterator implements IteratorTripleID {
 	public void remove() {
 		throw new UnsupportedOperationException();
 	}
+	
+	public IteratorTripleID clone() {
+		throw new UnsupportedOperationException();
+	}
 }

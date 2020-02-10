@@ -200,5 +200,9 @@ public class SequentialSearchIteratorTripleID implements IteratorTripleID {
 		throw new UnsupportedOperationException();
 	}
 	
+	public IteratorTripleID clone() {
+		throw new UnsupportedOperationException();
+	}
+	
 	
 }

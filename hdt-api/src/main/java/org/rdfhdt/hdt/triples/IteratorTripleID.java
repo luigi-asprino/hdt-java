@@ -91,4 +91,14 @@ public interface IteratorTripleID extends Iterator<TripleID> {
 	 * @return
 	 */
 	TripleComponentOrder getOrder();
+	
+	
+	/**
+	 * 
+	 */
+	
+	IteratorTripleID clone();
+	
+	
+	
 }

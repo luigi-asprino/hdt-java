@@ -35,181 +35,207 @@ import org.rdfhdt.hdt.triples.TripleID;
 
 /**
  * 
- * Iterates over all Y components of a BitmapTriples. 
- * i.e. In SPO it would iterate over all appearances of a predicate ?P?
+ * Iterates over all Y components of a BitmapTriples. i.e. In SPO it would
+ * iterate over all appearances of a predicate ?P?
  * 
  * @author mario.arias
  *
  */
 public class BitmapTriplesIteratorYFOQ implements IteratorTripleID {
-		private BitmapTriples triples;
-		private TripleID pattern, returnTriple;
-		private long patY;
-		
-		private AdjacencyList adjY, adjZ;
-		private long posY;
-		long posZ;
-		private long prevZ, nextZ, maxZ;
-		private long x, y, z;
-		
-		private long numOccurrences, numOccurrence, predBase;
-		
-		public BitmapTriplesIteratorYFOQ(BitmapTriples triples, TripleID pattern) {
-			this.triples = triples;
-			this.pattern = new TripleID(pattern);
-			this.returnTriple = new TripleID();
-			
-			TripleOrderConvert.swapComponentOrder(this.pattern, TripleComponentOrder.SPO, triples.order);
-			patY = this.pattern.getPredicate();
-			if(patY==0) {
-				throw new IllegalArgumentException("This structure is not meant to process this pattern");
-			}
-			
-			adjY = new AdjacencyList(triples.getSeqY(), triples.getBitmapY());
-			adjZ = new AdjacencyList(triples.getSeqZ(), triples.getBitmapZ());
-			
-			numOccurrences = triples.predicateIndex.getNumOcurrences(patY);
-			predBase = triples.predicateIndex.getBase(patY);
-			maxZ = triples.adjZ.getNumberOfElements();
-			
-			goToStart();
-		}
-		
-		private void updateOutput() {
-			returnTriple.setAll(x, y, z);
-			TripleOrderConvert.swapComponentOrder(returnTriple, triples.order, TripleComponentOrder.SPO);
-		}
-		
-		/* (non-Javadoc)
-		 * @see hdt.iterator.IteratorTripleID#hasNext()
-		 */
-		@Override
-		public boolean hasNext() {
-			return posZ<maxZ && (numOccurrence<numOccurrences) || posZ<=nextZ;
-		}
-		
-		
-		/* (non-Javadoc)
-		 * @see hdt.iterator.IteratorTripleID#next()
-		 */
-		@Override
-		public TripleID next() {	
-			if(posZ>nextZ) {
-				numOccurrence++;
-				posY = triples.predicateIndex.getOccurrence(predBase, numOccurrence);
-				
-				posZ = prevZ = adjZ.find(posY);
-				nextZ = adjZ.last(posY); 
-				
-				x = adjY.findListIndex(posY)+1;
-				y = adjY.get(posY);
-	 			z = adjZ.get(posZ);
-			} else {
-				z = adjZ.get(posZ);
-			}
-			posZ++;	
-		
-			updateOutput();
-			
-			return returnTriple;
+	private BitmapTriples triples;
+	private TripleID pattern, returnTriple;
+	private long patY;
+
+	private AdjacencyList adjY, adjZ;
+	private long posY;
+	long posZ;
+	private long prevZ, nextZ, maxZ;
+	private long x, y, z;
+
+	private long numOccurrences, numOccurrence, predBase;
+
+	public BitmapTriplesIteratorYFOQ(BitmapTriples triples, TripleID pattern) {
+		this.triples = triples;
+		this.pattern = new TripleID(pattern);
+		this.returnTriple = new TripleID();
+
+		TripleOrderConvert.swapComponentOrder(this.pattern, TripleComponentOrder.SPO, triples.order);
+		patY = this.pattern.getPredicate();
+		if (patY == 0) {
+			throw new IllegalArgumentException("This structure is not meant to process this pattern");
 		}
 
-		/* (non-Javadoc)
-		 * @see hdt.iterator.IteratorTripleID#hasPrevious()
-		 */
-		@Override
-		public boolean hasPrevious() {
-			return numOccurrence>1 || posZ>=prevZ;
-		}
+		adjY = new AdjacencyList(triples.getSeqY(), triples.getBitmapY());
+		adjZ = new AdjacencyList(triples.getSeqZ(), triples.getBitmapZ());
 
-		/* (non-Javadoc)
-		 * @see hdt.iterator.IteratorTripleID#previous()
-		 */
-		@Override
-		public TripleID previous() {
-			if(posZ<=prevZ) {
-				numOccurrence--;
-				posY = triples.predicateIndex.getOccurrence(predBase, numOccurrence);
+		numOccurrences = triples.predicateIndex.getNumOcurrences(patY);
+		predBase = triples.predicateIndex.getBase(patY);
+		maxZ = triples.adjZ.getNumberOfElements();
 
-				prevZ = adjZ.find(posY);
-				posZ = nextZ = adjZ.last(posY); 
-				
-				x = adjY.findListIndex(posY)+1;
-				y = adjY.get(posY);
-	 			z = adjZ.get(posZ);
-			} else {
-				z = adjZ.get(posZ);
-				posZ--;
-			}
-			
-			updateOutput();
+		goToStart();
+	}
 
-			return returnTriple;
-		}
+	private void updateOutput() {
+		returnTriple.setAll(x, y, z);
+		TripleOrderConvert.swapComponentOrder(returnTriple, triples.order, TripleComponentOrder.SPO);
+	}
 
-		/* (non-Javadoc)
-		 * @see hdt.iterator.IteratorTripleID#goToStart()
-		 */
-		@Override
-		public void goToStart() {
-			numOccurrence = 1;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see hdt.iterator.IteratorTripleID#hasNext()
+	 */
+	@Override
+	public boolean hasNext() {
+		return posZ < maxZ && (numOccurrence < numOccurrences) || posZ <= nextZ;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see hdt.iterator.IteratorTripleID#next()
+	 */
+	@Override
+	public TripleID next() {
+		if (posZ > nextZ) {
+			numOccurrence++;
 			posY = triples.predicateIndex.getOccurrence(predBase, numOccurrence);
-			
+
 			posZ = prevZ = adjZ.find(posY);
 			nextZ = adjZ.last(posY);
-			
-			x = adjY.findListIndex(posY)+1;
+
+			x = adjY.findListIndex(posY) + 1;
 			y = adjY.get(posY);
-	        z = adjZ.get(posZ);
+			z = adjZ.get(posZ);
+		} else {
+			z = adjZ.get(posZ);
+		}
+		posZ++;
+
+		updateOutput();
+
+		return returnTriple;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see hdt.iterator.IteratorTripleID#hasPrevious()
+	 */
+	@Override
+	public boolean hasPrevious() {
+		return numOccurrence > 1 || posZ >= prevZ;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see hdt.iterator.IteratorTripleID#previous()
+	 */
+	@Override
+	public TripleID previous() {
+		if (posZ <= prevZ) {
+			numOccurrence--;
+			posY = triples.predicateIndex.getOccurrence(predBase, numOccurrence);
+
+			prevZ = adjZ.find(posY);
+			posZ = nextZ = adjZ.last(posY);
+
+			x = adjY.findListIndex(posY) + 1;
+			y = adjY.get(posY);
+			z = adjZ.get(posZ);
+		} else {
+			z = adjZ.get(posZ);
+			posZ--;
 		}
 
-		/* (non-Javadoc)
-		 * @see hdt.iterator.IteratorTripleID#estimatedNumResults()
-		 */
-		@Override
-		public long estimatedNumResults() {
-			return triples.predicateCount.get(patY-1);
-		}
+		updateOutput();
 
-		/* (non-Javadoc)
-		 * @see hdt.iterator.IteratorTripleID#numResultEstimation()
-		 */
-		@Override
-		public ResultEstimationType numResultEstimation() {
-		    return ResultEstimationType.UNKNOWN;
-		}
+		return returnTriple;
+	}
 
-		/* (non-Javadoc)
-		 * @see hdt.iterator.IteratorTripleID#canGoTo()
-		 */
-		@Override
-		public boolean canGoTo() {
-			return false;
-		}
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see hdt.iterator.IteratorTripleID#goToStart()
+	 */
+	@Override
+	public void goToStart() {
+		numOccurrence = 1;
+		posY = triples.predicateIndex.getOccurrence(predBase, numOccurrence);
 
-		/* (non-Javadoc)
-		 * @see hdt.iterator.IteratorTripleID#goTo(int)
-		 */
-		@Override
-		public void goTo(long pos) {
-			if(!canGoTo()) {
-				throw new IllegalAccessError("Cannot goto on this bitmaptriples pattern");
-			}
+		posZ = prevZ = adjZ.find(posY);
+		nextZ = adjZ.last(posY);
+
+		x = adjY.findListIndex(posY) + 1;
+		y = adjY.get(posY);
+		z = adjZ.get(posZ);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see hdt.iterator.IteratorTripleID#estimatedNumResults()
+	 */
+	@Override
+	public long estimatedNumResults() {
+		return triples.predicateCount.get(patY - 1);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see hdt.iterator.IteratorTripleID#numResultEstimation()
+	 */
+	@Override
+	public ResultEstimationType numResultEstimation() {
+		return ResultEstimationType.UNKNOWN;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see hdt.iterator.IteratorTripleID#canGoTo()
+	 */
+	@Override
+	public boolean canGoTo() {
+		return false;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see hdt.iterator.IteratorTripleID#goTo(int)
+	 */
+	@Override
+	public void goTo(long pos) {
+		if (!canGoTo()) {
+			throw new IllegalAccessError("Cannot goto on this bitmaptriples pattern");
 		}
-		
-		/* (non-Javadoc)
-		 * @see hdt.iterator.IteratorTripleID#getOrder()
-		 */
-		@Override
-		public TripleComponentOrder getOrder() {
-			return triples.order;
-		}
-		
-		/* (non-Javadoc)
-		 * @see java.util.Iterator#remove()
-		 */
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see hdt.iterator.IteratorTripleID#getOrder()
+	 */
+	@Override
+	public TripleComponentOrder getOrder() {
+		return triples.order;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.Iterator#remove()
+	 */
+	@Override
+	public void remove() {
+		throw new UnsupportedOperationException();
+	}
+
+	public IteratorTripleID clone() {
+		return this.triples.search(pattern);
+	}
+
 }
