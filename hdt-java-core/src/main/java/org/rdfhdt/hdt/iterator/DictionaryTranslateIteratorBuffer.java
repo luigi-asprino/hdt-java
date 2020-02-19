@@ -76,7 +76,6 @@ public class DictionaryTranslateIteratorBuffer implements IteratorTripleString {
 		this.s = s==null ? "" : s;
 		this.p = p==null ? "" : p;
 		this.o = o==null ? "" : o;
-		System.out.println("block size"+this.blockSize);
 	}
 
 	private void reset() {
