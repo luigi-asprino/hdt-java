@@ -184,10 +184,6 @@ public class BitmapTriplesIteratorCat implements IteratorTripleID {
     private long mapIdPredicate(long id, CatMapping catMapping){
         return catMapping.getMapping(id-1);
     }
-    
-    public IteratorTripleID clone() {
-    	throw new UnsupportedOperationException();
-	}
 
 
 }

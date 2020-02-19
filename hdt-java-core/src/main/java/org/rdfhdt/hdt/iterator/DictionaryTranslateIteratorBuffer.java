@@ -111,7 +111,7 @@ public class DictionaryTranslateIteratorBuffer implements IteratorTripleString {
 		}
 	}
 
-	protected void fetchBlock() {
+	private void fetchBlock() {
 		reset();		
 
 		long [] arrSubjects = new long[blockSize];

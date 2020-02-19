@@ -491,10 +491,6 @@ public class TriplesList implements TempTriples {
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
-		
-		public IteratorTripleID clone() {
-			throw new UnsupportedOperationException();
-		}
 	}
 
 	@Override
@@ -517,7 +513,5 @@ public class TriplesList implements TempTriples {
 				);
 		}
 	}
-	
-	
 	
 }

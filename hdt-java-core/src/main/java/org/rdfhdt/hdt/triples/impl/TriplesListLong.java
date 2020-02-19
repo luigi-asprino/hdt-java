@@ -447,10 +447,6 @@ public class TriplesListLong implements TempTriples {
 		public void goToStart() {
 			pos = 0;
 		}
-		
-		public IteratorTripleID clone() {
-			throw new UnsupportedOperationException();
-		}
 
 		/* (non-Javadoc)
 		 * @see hdt.iterator.IteratorTripleID#estimatedNumResults()

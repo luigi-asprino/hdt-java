@@ -506,10 +506,6 @@ public class RocksTriples implements TempTriples {
 		public void remove() {
 			throw new UnsupportedOperationException();
 		}
-		
-		public IteratorTripleID clone() {
-			throw new UnsupportedOperationException();
-		}
 	}
 
 	@Override
@@ -537,7 +533,5 @@ public class RocksTriples implements TempTriples {
 //					mapObj.getNewID(triple.getObject() - 1));
 //		}
 	}
-	
-	
 
 }

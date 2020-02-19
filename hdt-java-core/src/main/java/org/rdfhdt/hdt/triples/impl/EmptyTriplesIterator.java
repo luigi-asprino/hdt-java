@@ -68,8 +68,4 @@ public class EmptyTriplesIterator implements IteratorTripleID {
     public void remove() {
         throw new UnsupportedOperationException();
     }
-    
-    public IteratorTripleID clone() {
-		return new EmptyTriplesIterator(this.order);
-	}
 }
