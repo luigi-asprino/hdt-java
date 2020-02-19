@@ -106,10 +106,17 @@ public class HDTImpl implements HDTPrivate {
 	private boolean isMapped;
 	private boolean isClosed = false;
 
+	private int default_block_size = 10000;
+
 	private void createComponents() {
 		header = HeaderFactory.createHeader(spec);
 		dictionary = DictionaryFactory.createDictionary(spec);
 		triples = TriplesFactory.createTriples(spec);
+		String s = spec.get("default.block.size");
+		if (s != null) {
+			this.default_block_size = Integer.parseInt(s);
+		}
+		System.out.println("default block size "+default_block_size);
 	}
 
 	@Override
@@ -388,7 +395,7 @@ public class HDTImpl implements HDTPrivate {
 		if (isMapped) {
 			try {
 				return new DictionaryTranslateIteratorBuffer(triples.search(triple), (FourSectionDictionary) dictionary,
-						subject, predicate, object);
+						subject, predicate, object, default_block_size);
 			} catch (NullPointerException e) {
 				e.printStackTrace();
 				return new DictionaryTranslateIterator(triples.search(triple), dictionary, subject, predicate, object);
@@ -400,9 +407,8 @@ public class HDTImpl implements HDTPrivate {
 
 	public Stream<TripleString> stream(CharSequence subject, CharSequence predicate, CharSequence object)
 			throws NotFoundException {
-		
 		IteratorTripleString its = search(subject, predicate, object);
-		SpliteratorTripleString sts = new SpliteratorTripleString(its, its.estimatedNumResults());
+		SpliteratorTripleString sts = new SpliteratorTripleString(its, its.estimatedNumResults(), default_block_size);
 		return StreamSupport.stream(sts, true);
 	}
 

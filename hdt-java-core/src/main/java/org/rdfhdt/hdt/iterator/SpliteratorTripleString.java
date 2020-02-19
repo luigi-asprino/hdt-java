@@ -12,8 +12,13 @@ public class SpliteratorTripleString implements Spliterator<TripleString> {
 	private long smallestSegment = 100000;
 
 	public SpliteratorTripleString(IteratorTripleString baseIterator, long estimatedSize) {
+		this(baseIterator, estimatedSize, 100000);
+	}
+
+	public SpliteratorTripleString(IteratorTripleString baseIterator, long estimatedSize, long smallestSegment) {
 		this.baseIterator = baseIterator;
 		this.estimatedSize = estimatedSize;
+		this.smallestSegment = smallestSegment;
 	}
 
 	@Override

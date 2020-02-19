@@ -48,7 +48,7 @@ import org.rdfhdt.hdt.triples.TripleString;
  * 
  */
 public class DictionaryTranslateIteratorBuffer implements IteratorTripleString {
-	private static int DEFAULT_BLOCK_SIZE=100000;
+	private static int DEFAULT_BLOCK_SIZE=10000;
 	
 	final int blockSize;
 	
