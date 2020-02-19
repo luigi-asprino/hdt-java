@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 import org.rdfhdt.hdt.dictionary.impl.DictionaryPFCOptimizedExtractor;
 import org.rdfhdt.hdt.dictionary.impl.FourSectionDictionary;
@@ -65,6 +64,8 @@ public class DictionaryTranslateIteratorBuffer implements IteratorTripleString {
 	long lastSid, lastPid, lastOid;
 	CharSequence lastSstr, lastPstr, lastOstr;
 
+	long[] arrSubjects, arrPredicates, arrObjects;
+
 	public DictionaryTranslateIteratorBuffer(IteratorTripleID iteratorTripleID, FourSectionDictionary dictionary,
 			CharSequence s, CharSequence p, CharSequence o) {
 		this(iteratorTripleID, dictionary, s, p, o, DEFAULT_BLOCK_SIZE);
@@ -80,52 +81,35 @@ public class DictionaryTranslateIteratorBuffer implements IteratorTripleString {
 		this.p = p == null ? "" : p;
 		this.o = o == null ? "" : o;
 		System.out.println("block size" + this.blockSize);
-		triples = new ArrayList<TripleID>(blockSize);
-		mapSubject = new HashMap<>(blockSize);
-		mapPredicate = new HashMap<>();
-		mapObject = new HashMap<>(blockSize);
+
+		arrSubjects = new long[blockSize];
+		arrPredicates = new long[blockSize];
+		arrObjects = new long[blockSize];
 	}
 
 	private void reset() {
-		triples.clear();
-//		triples = new ArrayList<TripleID>(blockSize);
+		triples = new ArrayList<TripleID>(blockSize);
 
 		if (s.length() == 0) {
-			mapSubject.clear();
-//			mapSubject = new HashMap<>(blockSize);
+			mapSubject = new HashMap<>(blockSize);
 		}
 
 		if (p.length() == 0) {
-			mapPredicate.clear();
-//			mapPredicate = new HashMap<>();
+			mapPredicate = new HashMap<>();
 		}
 
 		if (o.length() == 0) {
-			mapObject.clear();
-//			mapObject = new HashMap<>(blockSize);
+			mapObject = new HashMap<>(blockSize);
 		}
 	}
 
-//	private void fill(long[] arr, int count, Map<Long, CharSequence> map, TripleComponentRole role) {
-//
-//		Arrays.stream(arr, 0, count).distinct().parallel().forEach(l -> {
-//			map.put(l, dictionary.idToString(l, role));
-//		});
-//
-////		Arrays.sort(arr, 0, count);
-////		long last=-1;
-////		for(int i=0;i<count;i++) {
-////			long val = arr[i];
-////			
-////			if(val!=last) {
-////				CharSequence str = dictionary.idToString(val, role);
-////				
-////				map.put(val, str);
-////				
-////				last = val;
-////			}
-////		}
-//	}
+	private void fill(long[] arr, int count, Map<Long, CharSequence> map, TripleComponentRole role) {
+
+		Arrays.stream(arr, 0, count).distinct().parallel().forEach(l -> {
+			map.put(l, dictionary.idToString(l, role));
+		});
+
+	}
 
 	protected void fetchBlock() {
 		reset();
@@ -134,42 +118,27 @@ public class DictionaryTranslateIteratorBuffer implements IteratorTripleString {
 //		long[] arrPredicates = new long[blockSize];
 //		long[] arrObjects = new long[blockSize];
 
+		int count = 0;
 		for (int i = 0; i < blockSize && iterator.hasNext(); i++) {
 			TripleID t = new TripleID(iterator.next());
 
 			triples.add(t);
 
-			if (s.length() == 0) {
-				if (!mapSubject.containsKey(t.getSubject())) {
-					mapSubject.put(t.getSubject(), dictionary.idToString(t.getSubject(), TripleComponentRole.SUBJECT));
-				}
-			}
+			if (s.length() == 0)
+				arrSubjects[count] = t.getSubject();
+			if (p.length() == 0)
+				arrPredicates[count] = t.getPredicate();
+			if (o.length() == 0)
+				arrObjects[count] = t.getObject();
 
-			if (p.length() == 0) {
-				if (!mapPredicate.containsKey(t.getPredicate()))
-					mapPredicate.put(t.getPredicate(),
-							dictionary.idToString(t.getPredicate(), TripleComponentRole.PREDICATE));
-			}
-
-			if (o.length() == 0) {
-				if (!mapObject.containsKey(t.getObject()))
-					mapObject.put(t.getObject(), dictionary.idToString(t.getObject(), TripleComponentRole.OBJECT));
-			}
-
-//			if (s.length() == 0 )
-//				arrSubjects[count] = t.getSubject();
-//			if (p.length() == 0)
-//				arrPredicates[count] = t.getPredicate();
-//			if (o.length() == 0)
-//				arrObjects[count] = t.getObject();
-
+			count++;
 		}
-//		if (s.length() == 0)
-//			fill(arrSubjects, count, mapSubject, TripleComponentRole.SUBJECT);
-//		if (p.length() == 0)
-//			fill(arrPredicates, count, mapPredicate, TripleComponentRole.PREDICATE);
-//		if (o.length() == 0)
-//			fill(arrObjects, count, mapObject, TripleComponentRole.OBJECT);
+		if (s.length() == 0)
+			fill(arrSubjects, count, mapSubject, TripleComponentRole.SUBJECT);
+		if (p.length() == 0)
+			fill(arrPredicates, count, mapPredicate, TripleComponentRole.PREDICATE);
+		if (o.length() == 0)
+			fill(arrObjects, count, mapObject, TripleComponentRole.OBJECT);
 
 		this.child = triples.iterator();
 	}
