@@ -9,7 +9,7 @@ import org.rdfhdt.hdt.triples.TripleString;
 public class SpliteratorTripleString implements Spliterator<TripleString> {
 	private IteratorTripleString baseIterator;
 	private long estimatedSize;
-	private long smallestSegment = 100000;
+	private long smallestSegment = 10000;
 
 	public SpliteratorTripleString(IteratorTripleString baseIterator, long estimatedSize) {
 		this(baseIterator, estimatedSize, 100000);
