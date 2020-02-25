@@ -16,6 +16,8 @@ import org.rdfhdt.hdt.triples.IteratorTripleID;
 import org.rdfhdt.hdt.triples.TripleID;
 import org.rdfhdt.hdt.triples.TripleString;
 
+import com.google.common.collect.Maps;
+
 public final class Block implements Iterator<TripleString> {
 
 	private Iterator<TripleID> iteratorTripleID;
@@ -33,15 +35,16 @@ public final class Block implements Iterator<TripleString> {
 		this.o = o == null ? "" : o;
 
 		if (s.length() == 0) {
-			mapSubject = new HashMap<>(blockSize);
+//			mapSubject = new HashMap<>(blockSize);
+			mapSubject = Maps.newHashMapWithExpectedSize(blockSize);
 		}
 
 		if (p.length() == 0) {
-			mapPredicate = new HashMap<>();
+			mapPredicate =  Maps.newHashMapWithExpectedSize(blockSize);
 		}
 
 		if (o.length() == 0) {
-			mapObject = new HashMap<>(blockSize);
+			mapObject = Maps.newHashMapWithExpectedSize(blockSize);
 		}
 	}
 
