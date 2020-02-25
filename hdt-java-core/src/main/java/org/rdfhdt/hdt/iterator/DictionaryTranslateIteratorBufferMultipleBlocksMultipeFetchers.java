@@ -26,6 +26,7 @@
 
 package org.rdfhdt.hdt.iterator;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.rdfhdt.hdt.dictionary.impl.DictionaryPFCOptimizedExtractor;
@@ -39,7 +40,7 @@ import org.rdfhdt.hdt.triples.TripleString;
  * Iterator of TripleStrings based on IteratorTripleID
  * 
  */
-public class DictionaryTranslateIteratorBufferMultipleBlocks implements IteratorTripleString {
+public class DictionaryTranslateIteratorBufferMultipleBlocksMultipeFetchers implements IteratorTripleString {
 	private static final int DEFAULT_BLOCK_SIZE = 10000;
 
 	private final int blockSize;
@@ -48,22 +49,26 @@ public class DictionaryTranslateIteratorBufferMultipleBlocks implements Iterator
 	private DictionaryPFCOptimizedExtractor dictionary;
 	private CharSequence s, p, o;
 
-	private Block current, next;
+	private Block current;
+
+	private ConcurrentLinkedQueue<Block> nextBlocks;
 
 	private AtomicBoolean toFetch = new AtomicBoolean(true);
 
-	public DictionaryTranslateIteratorBufferMultipleBlocks(IteratorTripleID iteratorTripleID,
+	public DictionaryTranslateIteratorBufferMultipleBlocksMultipeFetchers(IteratorTripleID iteratorTripleID,
 			FourSectionDictionary dictionary, CharSequence s, CharSequence p, CharSequence o) {
 		this(iteratorTripleID, dictionary, s, p, o, DEFAULT_BLOCK_SIZE);
 	}
 
-	public DictionaryTranslateIteratorBufferMultipleBlocks(IteratorTripleID iteratorTripleID,
+	public DictionaryTranslateIteratorBufferMultipleBlocksMultipeFetchers(IteratorTripleID iteratorTripleID,
 			FourSectionDictionary dictionary, CharSequence s, CharSequence p, CharSequence o, int blockSize) {
 
 		System.out.println("Buffer blocks");
 		this.blockSize = blockSize;
 		this.iterator = iteratorTripleID;
 		this.dictionary = new DictionaryPFCOptimizedExtractor(dictionary);
+
+		nextBlocks = new ConcurrentLinkedQueue<>();
 
 		this.s = s == null ? "" : s;
 		this.p = p == null ? "" : p;
@@ -72,60 +77,38 @@ public class DictionaryTranslateIteratorBufferMultipleBlocks implements Iterator
 		// fetching first block
 		current = Block.fetchBlock(iterator, this.dictionary, blockSize, s, p, o);
 
-		toFetch.set(true);
-		new Thread(() -> fetchNextBlock()).start();
+		new Thread(() -> fetchNextBlocks()).start();
 	}
 
 	private void fetchBlock() {
-		synchronized (toFetch) {
-			if (toFetch.get()) {
-				try {
-					toFetch.wait();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+		while (nextBlocks.isEmpty() && iterator.hasNext()) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-			// TODO be sure that the previous fetch has completed
-			current = next;
-			toFetch.set(true);
-			new Thread(() -> fetchNextBlock()).start();
 		}
-
+		current = nextBlocks.poll();
 	}
 
-	private void fetchNextBlock() {
-		synchronized (toFetch) {
-			next = Block.fetchBlock(iterator, this.dictionary, blockSize, s, p, o);
-			toFetch.set(false);
-			toFetch.notifyAll();
-			
+	private void fetchNextBlocks() {
+		while (iterator.hasNext()) {
+			nextBlocks.add(Block.fetchBlock(iterator, this.dictionary, blockSize, s, p, o));
 		}
 	}
 
 	@Override
 	public boolean hasNext() {
 
-		if (!current.hasNext()) {
+		if (current != null && !current.hasNext()) {
 			fetchBlock();
 		}
 
-		if (!current.hasNext() && toFetch.get()) {
-			// wait end of fetching
-			synchronized (toFetch) {
-				if (toFetch.get()) {
-					try {
-						toFetch.wait();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-			if (next != null) {
-				current = next;
-			}
+		if (current == null) {
+			return false;
 		}
 
-		return current.hasNext();
+		return current != null && current.hasNext();
 	}
 
 	@Override

@@ -25,6 +25,7 @@ public class SpliteratorTripleString implements Spliterator<TripleString> {
 	public Spliterator<TripleString> trySplit() {
 		if (baseIterator.hasNext() && estimatedSize > smallestSegment) {
 			long splitted = (estimatedSize / 2);
+			
 			return new SpliteratorTripleString(baseIterator, splitted);
 		}
 		return null;

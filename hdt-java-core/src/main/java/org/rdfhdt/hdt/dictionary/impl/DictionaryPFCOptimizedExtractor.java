@@ -5,12 +5,13 @@ import org.rdfhdt.hdt.dictionary.impl.section.PFCOptimizedExtractor;
 import org.rdfhdt.hdt.enums.TripleComponentRole;
 
 public class DictionaryPFCOptimizedExtractor {
-	private final PFCOptimizedExtractor shared, subjects, predicates, objects;
+	private final PFCOptimizedExtractor sharedSubjects, sharedObjects, subjects, predicates, objects;
 	private final long numshared;
 	
 	public DictionaryPFCOptimizedExtractor(FourSectionDictionary origDict) {
 		numshared=(int) origDict.getNshared();
-		shared = new PFCOptimizedExtractor((PFCDictionarySectionMap) origDict.shared);
+		sharedSubjects = new PFCOptimizedExtractor((PFCDictionarySectionMap) origDict.shared);
+		sharedObjects = new PFCOptimizedExtractor((PFCDictionarySectionMap) origDict.shared);
 		subjects = new PFCOptimizedExtractor((PFCDictionarySectionMap) origDict.subjects);
 		predicates = new PFCOptimizedExtractor((PFCDictionarySectionMap) origDict.predicates);
 		objects = new PFCOptimizedExtractor((PFCDictionarySectionMap) origDict.objects);
@@ -26,7 +27,7 @@ public class DictionaryPFCOptimizedExtractor {
 		switch (role) {
 		case SUBJECT:
 			if(id<=numshared) {
-				return shared;
+				return sharedSubjects;
 			} else {
 				return subjects;
 			}
@@ -34,7 +35,7 @@ public class DictionaryPFCOptimizedExtractor {
 			return predicates;
 		case OBJECT:
 			if(id<=numshared) {
-				return shared;
+				return sharedObjects;
 			} else {
 				return objects;
 			}

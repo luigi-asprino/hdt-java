@@ -65,8 +65,8 @@ import org.rdfhdt.hdt.header.HeaderFactory;
 import org.rdfhdt.hdt.header.HeaderPrivate;
 import org.rdfhdt.hdt.iterator.DictionaryTranslateIterator;
 import org.rdfhdt.hdt.iterator.DictionaryTranslateIteratorBuffer;
-import org.rdfhdt.hdt.iterator.DictionaryTranslateIteratorBufferMultipleBlocks;
-import org.rdfhdt.hdt.iterator.SpliteratorTripleString;
+import org.rdfhdt.hdt.iterator.DictionaryTranslateIteratorBufferMultipleBlocksMultipeFetchers;
+import org.rdfhdt.hdt.iterator.DictionaryTranslateSpliterator;
 import org.rdfhdt.hdt.listener.ProgressListener;
 import org.rdfhdt.hdt.options.ControlInfo;
 import org.rdfhdt.hdt.options.ControlInformation;
@@ -393,7 +393,7 @@ public class HDTImpl implements HDTPrivate {
 		if (isMapped) {
 			try {
 				if (useOptimizations) {
-					return new DictionaryTranslateIteratorBufferMultipleBlocks(triples.search(triple),
+					return new DictionaryTranslateIteratorBufferMultipleBlocksMultipeFetchers(triples.search(triple),
 							(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize);
 				} else {
 					return new DictionaryTranslateIteratorBuffer(triples.search(triple),
@@ -410,9 +410,23 @@ public class HDTImpl implements HDTPrivate {
 
 	public Stream<TripleString> stream(CharSequence subject, CharSequence predicate, CharSequence object)
 			throws NotFoundException {
-		IteratorTripleString its = search(subject, predicate, object);
-		SpliteratorTripleString sts = new SpliteratorTripleString(its, its.estimatedNumResults(), defaultBlockSize);
-		return StreamSupport.stream(sts, true);
+//		IteratorTripleString its = search(subject, predicate, object);
+//		SpliteratorTripleString sts = new SpliteratorTripleString(its, its.estimatedNumResults());
+//		return StreamSupport.stream(sts, true);
+
+		if (isClosed) {
+			throw new IllegalStateException("Cannot search an already closed HDT");
+		}
+
+		// Conversion from TripleString to TripleID
+		TripleID triple = new TripleID(dictionary.stringToId(subject, TripleComponentRole.SUBJECT),
+				dictionary.stringToId(predicate, TripleComponentRole.PREDICATE),
+				dictionary.stringToId(object, TripleComponentRole.OBJECT));
+
+		DictionaryTranslateSpliterator dts = new DictionaryTranslateSpliterator(triples.search(triple),
+				(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize);
+		return StreamSupport.stream(dts, true);
+
 	}
 
 	/*

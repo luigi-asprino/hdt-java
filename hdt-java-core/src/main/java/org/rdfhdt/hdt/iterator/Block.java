@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.rdfhdt.hdt.dictionary.impl.DictionaryPFCOptimizedExtractor;
 import org.rdfhdt.hdt.enums.TripleComponentRole;
@@ -44,6 +47,7 @@ public final class Block implements Iterator<TripleString> {
 
 	static void fill(DictionaryPFCOptimizedExtractor dictionary, long[] arr, int count, Map<Long, CharSequence> map,
 			TripleComponentRole role) {
+
 		Arrays.sort(arr, 0, count);
 
 		long last = -1;
@@ -58,6 +62,7 @@ public final class Block implements Iterator<TripleString> {
 				last = val;
 			}
 		}
+
 	}
 
 	static Block fetchBlock(final IteratorTripleID iterator, DictionaryPFCOptimizedExtractor dictionary,
@@ -75,31 +80,87 @@ public final class Block implements Iterator<TripleString> {
 
 			triples.add(t);
 
-			if (s.length() == 0)
+			if (s.length() == 0) {
 				arrSubjects[count] = t.getSubject();
-			if (p.length() == 0)
+			}
+			if (p.length() == 0) {
 				arrPredicates[count] = t.getPredicate();
+			}
 			if (o.length() == 0)
 				arrObjects[count] = t.getObject();
 
 			count++;
+
 		}
-		if (s.length() == 0)
-			fill(dictionary, arrSubjects, count, r.mapSubject, TripleComponentRole.SUBJECT);
-		if (p.length() == 0)
-			fill(dictionary, arrPredicates, count, r.mapPredicate, TripleComponentRole.PREDICATE);
-		if (o.length() == 0)
-			fill(dictionary, arrObjects, count, r.mapObject, TripleComponentRole.OBJECT);
+		ExecutorService pool = Executors.newFixedThreadPool(3);
+		final int c = count;
+		if (s.length() == 0) {
+			pool.execute(() -> {
+				fill(dictionary, arrSubjects, c, r.mapSubject, TripleComponentRole.SUBJECT);
+			});
+		}
+		if (p.length() == 0) {
+			pool.execute(() -> {
+				fill(dictionary, arrPredicates, c, r.mapPredicate, TripleComponentRole.PREDICATE);
+			});
+		}
+		if (o.length() == 0) {
+			pool.execute(() -> {
+				fill(dictionary, arrObjects, c, r.mapObject, TripleComponentRole.OBJECT);
+			});
+		}
+
+		try {
+			pool.shutdown();
+			pool.awaitTermination(10, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+//		Thread ts = null, tp = null, to = null;
+//
+//		if (s.length() == 0) {
+//			ts = new Thread(() -> fill(dictionary, arrSubjects, c, r.mapSubject, TripleComponentRole.SUBJECT));
+//			ts.start();
+//		}
+//		if (p.length() == 0) {
+//			tp = new Thread(() -> fill(dictionary, arrPredicates, c, r.mapPredicate, TripleComponentRole.PREDICATE));
+//			tp.start();
+//		}
+//		if (o.length() == 0) {
+//			to = new Thread(() -> fill(dictionary, arrObjects, c, r.mapObject, TripleComponentRole.OBJECT));
+//			to.start();
+//		}
+//
+//		try {
+//			if (s.length() == 0) {
+//				ts.join();
+//			}
+//			if (p.length() == 0) {
+//				tp.join();
+//			}
+//			if (o.length() == 0) {
+//				to.join();
+//			}
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
+
+//		if (s.length() == 0)
+//			fill(dictionary, arrSubjects, count, r.mapSubject, TripleComponentRole.SUBJECT);
+//		if (p.length() == 0)
+//			fill(dictionary, arrPredicates, count, r.mapPredicate, TripleComponentRole.PREDICATE);
+//		if (o.length() == 0)
+//			fill(dictionary, arrObjects, count, r.mapObject, TripleComponentRole.OBJECT);
 
 		r.iteratorTripleID = triples.iterator();
-		
-		
+
 		return r;
 	}
 
 	@Override
 	public boolean hasNext() {
-		return iteratorTripleID!=null && iteratorTripleID.hasNext();
+		return iteratorTripleID != null && iteratorTripleID.hasNext();
 	}
 
 	@Override

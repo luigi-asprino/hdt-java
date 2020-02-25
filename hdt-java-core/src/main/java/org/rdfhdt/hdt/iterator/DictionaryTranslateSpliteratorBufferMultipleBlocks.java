@@ -39,7 +39,7 @@ import org.rdfhdt.hdt.triples.TripleString;
  * Iterator of TripleStrings based on IteratorTripleID
  * 
  */
-public class DictionaryTranslateIteratorBufferMultipleBlocks implements IteratorTripleString {
+public class DictionaryTranslateSpliteratorBufferMultipleBlocks implements IteratorTripleString {
 	private static final int DEFAULT_BLOCK_SIZE = 10000;
 
 	private final int blockSize;
@@ -52,12 +52,12 @@ public class DictionaryTranslateIteratorBufferMultipleBlocks implements Iterator
 
 	private AtomicBoolean toFetch = new AtomicBoolean(true);
 
-	public DictionaryTranslateIteratorBufferMultipleBlocks(IteratorTripleID iteratorTripleID,
+	public DictionaryTranslateSpliteratorBufferMultipleBlocks(IteratorTripleID iteratorTripleID,
 			FourSectionDictionary dictionary, CharSequence s, CharSequence p, CharSequence o) {
 		this(iteratorTripleID, dictionary, s, p, o, DEFAULT_BLOCK_SIZE);
 	}
 
-	public DictionaryTranslateIteratorBufferMultipleBlocks(IteratorTripleID iteratorTripleID,
+	public DictionaryTranslateSpliteratorBufferMultipleBlocks(IteratorTripleID iteratorTripleID,
 			FourSectionDictionary dictionary, CharSequence s, CharSequence p, CharSequence o, int blockSize) {
 
 		System.out.println("Buffer blocks");
