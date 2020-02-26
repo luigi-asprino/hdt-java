@@ -429,10 +429,11 @@ public class HDTImpl implements HDTPrivate {
 		IteratorTripleID tripleIterator = triples.search(triple);
 		Spliterator<TripleString> spliterator = null;
 		if (!tripleIterator.canGoTo()) {
-
+			System.out.println("spliterator opt");
 			spliterator = new DictionaryTranslateSpliteratorOpt(triples.search(triple),
 					(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize);
 		} else {
+			System.out.println("spliterator can go to");
 			spliterator = new DictionaryTranslateSpliteratorOptCanGoTo(triples, triple,
 					(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize, 0,
 					tripleIterator.estimatedNumResults());
