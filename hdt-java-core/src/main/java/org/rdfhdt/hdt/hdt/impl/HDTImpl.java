@@ -66,7 +66,7 @@ import org.rdfhdt.hdt.header.HeaderPrivate;
 import org.rdfhdt.hdt.iterator.DictionaryTranslateIterator;
 import org.rdfhdt.hdt.iterator.DictionaryTranslateIteratorBuffer;
 import org.rdfhdt.hdt.iterator.DictionaryTranslateIteratorBufferMultipleBlocksMultipeFetchers;
-import org.rdfhdt.hdt.iterator.DictionaryTranslateSpliterator;
+import org.rdfhdt.hdt.iterator.DictionaryTranslateSpliteratorOpt;
 import org.rdfhdt.hdt.listener.ProgressListener;
 import org.rdfhdt.hdt.options.ControlInfo;
 import org.rdfhdt.hdt.options.ControlInformation;
@@ -423,7 +423,7 @@ public class HDTImpl implements HDTPrivate {
 				dictionary.stringToId(predicate, TripleComponentRole.PREDICATE),
 				dictionary.stringToId(object, TripleComponentRole.OBJECT));
 
-		DictionaryTranslateSpliterator dts = new DictionaryTranslateSpliterator(triples.search(triple),
+		DictionaryTranslateSpliteratorOpt dts = new DictionaryTranslateSpliteratorOpt(triples.search(triple),
 				(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize);
 		return StreamSupport.stream(dts, true);
 

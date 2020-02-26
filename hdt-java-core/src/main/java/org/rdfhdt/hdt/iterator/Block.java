@@ -2,7 +2,6 @@ package org.rdfhdt.hdt.iterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +39,7 @@ public final class Block implements Iterator<TripleString> {
 		}
 
 		if (p.length() == 0) {
-			mapPredicate =  Maps.newHashMapWithExpectedSize(blockSize);
+			mapPredicate = Maps.newHashMapWithExpectedSize(blockSize);
 		}
 
 		if (o.length() == 0) {
@@ -120,43 +119,45 @@ public final class Block implements Iterator<TripleString> {
 			e.printStackTrace();
 		}
 
-//		Thread ts = null, tp = null, to = null;
-//
-//		if (s.length() == 0) {
-//			ts = new Thread(() -> fill(dictionary, arrSubjects, c, r.mapSubject, TripleComponentRole.SUBJECT));
-//			ts.start();
-//		}
-//		if (p.length() == 0) {
-//			tp = new Thread(() -> fill(dictionary, arrPredicates, c, r.mapPredicate, TripleComponentRole.PREDICATE));
-//			tp.start();
-//		}
-//		if (o.length() == 0) {
-//			to = new Thread(() -> fill(dictionary, arrObjects, c, r.mapObject, TripleComponentRole.OBJECT));
-//			to.start();
-//		}
-//
-//		try {
-//			if (s.length() == 0) {
-//				ts.join();
-//			}
-//			if (p.length() == 0) {
-//				tp.join();
-//			}
-//			if (o.length() == 0) {
-//				to.join();
-//			}
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-
-//		if (s.length() == 0)
-//			fill(dictionary, arrSubjects, count, r.mapSubject, TripleComponentRole.SUBJECT);
-//		if (p.length() == 0)
-//			fill(dictionary, arrPredicates, count, r.mapPredicate, TripleComponentRole.PREDICATE);
-//		if (o.length() == 0)
-//			fill(dictionary, arrObjects, count, r.mapObject, TripleComponentRole.OBJECT);
-
 		r.iteratorTripleID = triples.iterator();
+
+		return r;
+	}
+
+	static Block transformBlock(final BlockTripleID blockOriginal, DictionaryPFCOptimizedExtractor dictionary,
+			final int blockSize, final CharSequence s, final CharSequence p, final CharSequence o) {
+		Block r = new Block(blockSize, s, p, o);
+
+		ExecutorService pool = Executors.newFixedThreadPool(3);
+		final int c = blockOriginal.getCount();
+
+		if (s.length() == 0) {
+
+			pool.execute(() -> {
+				fill(dictionary, blockOriginal.getSubject(), c, r.mapSubject, TripleComponentRole.SUBJECT);
+			});
+		}
+		if (p.length() == 0) {
+
+			pool.execute(() -> {
+				fill(dictionary, blockOriginal.getPredicate(), c, r.mapPredicate, TripleComponentRole.PREDICATE);
+			});
+		}
+		if (o.length() == 0) {
+
+			pool.execute(() -> {
+				fill(dictionary, blockOriginal.getObject(), c, r.mapObject, TripleComponentRole.OBJECT);
+			});
+		}
+
+		try {
+			pool.shutdown();
+			pool.awaitTermination(10, TimeUnit.MINUTES);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		r.iteratorTripleID = blockOriginal.getTriples().iterator();
 
 		return r;
 	}
