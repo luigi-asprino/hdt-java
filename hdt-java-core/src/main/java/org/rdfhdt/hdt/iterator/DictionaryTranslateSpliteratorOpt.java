@@ -43,16 +43,16 @@ import com.google.common.collect.Queues;
  * 
  */
 public class DictionaryTranslateSpliteratorOpt implements Spliterator<TripleString> {
-	private static final int DEFAULT_BLOCK_SIZE = 10000;
+//	private static final int DEFAULT_BLOCK_SIZE = 10000;
 	private static final int NUMBER_OF_BUFFERED_BLOCKS = Runtime.getRuntime().availableProcessors() * 2;
 	private final int blockSize;
-	private IteratorTripleID iterator;
-	private DictionaryPFCOptimizedExtractor dictionary;
-	private FourSectionDictionary originDictionary;
-	private CharSequence s, p, o;
+	private final IteratorTripleID iterator;
+	private final DictionaryPFCOptimizedExtractor dictionary;
+	private final FourSectionDictionary originDictionary;
+	private final CharSequence s, p, o;
 	private Block current;
-	private BlockingQueue<BlockTripleID> nextBlocks;
-	private long estimatedSize;
+	private final long estimatedSize;
+	private final BlockingQueue<BlockTripleID> nextBlocks;
 
 	public DictionaryTranslateSpliteratorOpt(IteratorTripleID iteratorTripleID, FourSectionDictionary dictionary,
 			CharSequence s, CharSequence p, CharSequence o, int blockSize) {
@@ -142,7 +142,7 @@ public class DictionaryTranslateSpliteratorOpt implements Spliterator<TripleStri
 
 	@Override
 	public Spliterator<TripleString> trySplit() {
-		if (iterator.hasNext() && estimatedSize > DEFAULT_BLOCK_SIZE * 2) {
+		if (iterator.hasNext() && estimatedSize > blockSize * 2) {
 			long splitted = (estimatedSize / 2);
 			return new DictionaryTranslateSpliteratorOpt(iterator, originDictionary, nextBlocks, s, p, o, blockSize,
 					splitted);

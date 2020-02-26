@@ -27,114 +27,75 @@
 package org.rdfhdt.hdt.iterator;
 
 import java.util.Spliterator;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import org.rdfhdt.hdt.dictionary.impl.DictionaryPFCOptimizedExtractor;
 import org.rdfhdt.hdt.dictionary.impl.FourSectionDictionary;
 import org.rdfhdt.hdt.triples.IteratorTripleID;
+import org.rdfhdt.hdt.triples.TripleID;
 import org.rdfhdt.hdt.triples.TripleString;
-
-import com.google.common.collect.Queues;
+import org.rdfhdt.hdt.triples.Triples;
 
 /**
  * Iterator of TripleStrings based on IteratorTripleID
  * 
  */
 public class DictionaryTranslateSpliteratorOptCanGoTo implements Spliterator<TripleString> {
-	private static final int DEFAULT_BLOCK_SIZE = 10000;
-	private static final int NUMBER_OF_BUFFERED_BLOCKS = Runtime.getRuntime().availableProcessors() * 2;
+
 	private final int blockSize;
-	private IteratorTripleID iterator;
-	private DictionaryPFCOptimizedExtractor dictionary;
-	private FourSectionDictionary originDictionary;
-	private CharSequence s, p, o;
+	private  Triples triples;
+	private  IteratorTripleID iterator;
+	private  DictionaryPFCOptimizedExtractor dictionary;
+	private  FourSectionDictionary originDictionary;
+	private final CharSequence s, p, o;
+	private final TripleID searchedTriple;
+	private final long from;
+	private AtomicLong currentIndex;
+	private long toExcluded, estimatedSize;
 	private Block current;
-	private BlockingQueue<BlockTripleID> nextBlocks;
-	private long estimatedSize;
 
-	public DictionaryTranslateSpliteratorOptCanGoTo(IteratorTripleID iteratorTripleID, FourSectionDictionary dictionary,
-			CharSequence s, CharSequence p, CharSequence o, int blockSize) {
-
-		System.out.println("Spliterator opt " + blockSize+ " "+iteratorTripleID.canGoTo()+" "+iteratorTripleID.getClass().toString());
+	public DictionaryTranslateSpliteratorOptCanGoTo(final Triples triples, final TripleID searchedTriple,
+			final FourSectionDictionary dictionary, final CharSequence s, final CharSequence p, final CharSequence o,
+			final int blockSize, final long from, final long toExcluded) {
 
 		this.blockSize = blockSize;
-		this.iterator = iteratorTripleID;
+		this.triples = triples;
+		this.searchedTriple = searchedTriple;
+		this.iterator = triples.search(searchedTriple);
 		this.originDictionary = dictionary;
+		this.toExcluded = toExcluded;
+		this.from = from;
 		this.dictionary = new DictionaryPFCOptimizedExtractor(dictionary);
 
 		this.s = s == null ? "" : s;
 		this.p = p == null ? "" : p;
 		this.o = o == null ? "" : o;
 
-		this.estimatedSize = iteratorTripleID.estimatedNumResults();
-		nextBlocks = Queues.newLinkedBlockingQueue(NUMBER_OF_BUFFERED_BLOCKS);
-		new Thread(() -> fetchNextBlocks()).start();
-	}
+		this.iterator.goTo(from);
+		this.currentIndex = new AtomicLong(from);
 
-	private DictionaryTranslateSpliteratorOptCanGoTo(IteratorTripleID iteratorTripleID, FourSectionDictionary dictionary,
-			BlockingQueue<BlockTripleID> nextBlocks, CharSequence s, CharSequence p, CharSequence o, int blockSize,
-			long estimatedSize) {
-		
+		this.estimatedSize = toExcluded - from;
 
-		this.blockSize = blockSize;
-		this.iterator = iteratorTripleID;
-		this.originDictionary = dictionary;
-		this.dictionary = new DictionaryPFCOptimizedExtractor(dictionary);
-		
-		this.s = s == null ? "" : s;
-		this.p = p == null ? "" : p;
-		this.o = o == null ? "" : o;
-
-		this.estimatedSize = estimatedSize;
-		this.nextBlocks = nextBlocks;
-
-	}
-
-	private void fetchNextBlocks() {
-		while (iterator.hasNext()) {
-			try {
-				nextBlocks.put(BlockTripleID.fetchBlock(iterator, this.dictionary, blockSize, s, p, o));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 	}
 
 	@Override
 	public boolean tryAdvance(Consumer<? super TripleString> action) {
 		if (current != null && current.hasNext()) {
+//			currentIndex.incrementAndGet();
 			action.accept(current.next());
 			return true;
 		}
 
-		if (current == null && !nextBlocks.isEmpty()) {
-			BlockTripleID currentBlockTripleID = nextBlocks.poll();
-			if (currentBlockTripleID != null) {
-				current = Block.transformBlock(currentBlockTripleID, dictionary, blockSize, s, p, o);
-				if (current != null && current.hasNext()) {
-					action.accept(current.next());
-					return true;
-				}
+		if (currentIndex.longValue() < toExcluded && (current == null || !current.hasNext())) {
+			BlockTripleID b = BlockTripleID.fetchBlock(iterator, currentIndex.longValue(),
+					Math.min(currentIndex.longValue() + blockSize, toExcluded), this.dictionary, blockSize, s, p, o);
+			current = Block.transformBlock(b, dictionary, blockSize, s, p, o);
+			currentIndex.set(currentIndex.get() + b.getCount());
+			if (current != null && current.hasNext()) {
+				action.accept(current.next());
+				return true;
 			}
-
-		}
-
-		if (iterator.hasNext()) {
-			try {
-				BlockTripleID currentBlockTripleID = nextBlocks.poll(10, TimeUnit.MILLISECONDS);
-				if (currentBlockTripleID != null) {
-					current = Block.transformBlock(currentBlockTripleID, dictionary, blockSize, s, p, o);
-				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-
-		if (current != null && current.hasNext()) {
-			action.accept(current.next());
-			return true;
 		}
 
 		return false;
@@ -142,10 +103,16 @@ public class DictionaryTranslateSpliteratorOptCanGoTo implements Spliterator<Tri
 
 	@Override
 	public Spliterator<TripleString> trySplit() {
-		if (iterator.hasNext() && estimatedSize > DEFAULT_BLOCK_SIZE * 2) {
-			long splitted = (estimatedSize / 2);
-			return new DictionaryTranslateSpliteratorOptCanGoTo(iterator, originDictionary, nextBlocks, s, p, o, blockSize,
-					splitted);
+		if (iterator.hasNext() && (from + estimatedSize - currentIndex.longValue()) > blockSize * 2) {
+
+			long splitted = ((from + estimatedSize - currentIndex.longValue()) / 2);
+			long toExcludedNewIterator = this.toExcluded;
+			long fromNewIterator = currentIndex.longValue() + splitted;
+			this.toExcluded = fromNewIterator;
+			this.estimatedSize = splitted;
+
+			return new DictionaryTranslateSpliteratorOptCanGoTo(triples, searchedTriple, originDictionary, s, p, o,
+					blockSize, fromNewIterator, toExcludedNewIterator);
 		}
 		return null;
 	}

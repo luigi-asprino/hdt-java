@@ -64,6 +64,33 @@ public final class BlockTripleID {
 		return r;
 	}
 
+	static BlockTripleID fetchBlock( IteratorTripleID iterator, final long from, final long toExcluded,
+			 DictionaryPFCOptimizedExtractor dictionary, final int blockSize, final CharSequence s,
+			final CharSequence p, final CharSequence o) {
+
+		 BlockTripleID r = new BlockTripleID(blockSize, s, p, o);
+		long j = from;
+		r.count = 0;
+		for (int i = 0; i < blockSize && iterator.hasNext() && j < toExcluded; i++, j++) {
+			r.count++;
+			final TripleID t = iterator.next();
+			r.triples.add(t);
+			if (s.length() == 0) {
+				r.subject[i] = t.getSubject();
+			}
+
+			if (p.length() == 0) {
+				r.predicate[i] = t.getPredicate();
+			}
+
+			if (o.length() == 0) {
+				r.object[i] = t.getObject();
+			}
+		}
+
+		return r;
+	}
+
 	public long[] getSubject() {
 		return subject;
 	}

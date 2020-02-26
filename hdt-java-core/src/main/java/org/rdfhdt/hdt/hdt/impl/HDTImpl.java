@@ -40,6 +40,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.Spliterator;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.GZIPInputStream;
@@ -67,11 +68,13 @@ import org.rdfhdt.hdt.iterator.DictionaryTranslateIterator;
 import org.rdfhdt.hdt.iterator.DictionaryTranslateIteratorBuffer;
 import org.rdfhdt.hdt.iterator.DictionaryTranslateIteratorBufferMultipleBlocksMultipeFetchers;
 import org.rdfhdt.hdt.iterator.DictionaryTranslateSpliteratorOpt;
+import org.rdfhdt.hdt.iterator.DictionaryTranslateSpliteratorOptCanGoTo;
 import org.rdfhdt.hdt.listener.ProgressListener;
 import org.rdfhdt.hdt.options.ControlInfo;
 import org.rdfhdt.hdt.options.ControlInformation;
 import org.rdfhdt.hdt.options.HDTOptions;
 import org.rdfhdt.hdt.options.HDTSpecification;
+import org.rdfhdt.hdt.triples.IteratorTripleID;
 import org.rdfhdt.hdt.triples.IteratorTripleString;
 import org.rdfhdt.hdt.triples.TempTriples;
 import org.rdfhdt.hdt.triples.TripleID;
@@ -423,9 +426,19 @@ public class HDTImpl implements HDTPrivate {
 				dictionary.stringToId(predicate, TripleComponentRole.PREDICATE),
 				dictionary.stringToId(object, TripleComponentRole.OBJECT));
 
-		DictionaryTranslateSpliteratorOpt dts = new DictionaryTranslateSpliteratorOpt(triples.search(triple),
-				(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize);
-		return StreamSupport.stream(dts, true);
+		IteratorTripleID tripleIterator = triples.search(triple);
+		Spliterator<TripleString> spliterator = null;
+		if (!tripleIterator.canGoTo()) {
+
+			spliterator = new DictionaryTranslateSpliteratorOpt(triples.search(triple),
+					(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize);
+		} else {
+			spliterator = new DictionaryTranslateSpliteratorOptCanGoTo(triples, triple,
+					(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize, 0,
+					tripleIterator.estimatedNumResults());
+		}
+
+		return StreamSupport.stream(spliterator, true);
 
 	}
 
