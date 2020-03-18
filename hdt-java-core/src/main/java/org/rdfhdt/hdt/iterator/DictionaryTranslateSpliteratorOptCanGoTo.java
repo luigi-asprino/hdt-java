@@ -89,7 +89,8 @@ public class DictionaryTranslateSpliteratorOptCanGoTo implements Spliterator<Tri
 		if (currentIndex.longValue() < toExcluded && (current == null || !current.hasNext())) {
 			BlockTripleID b = BlockTripleID.fetchBlock(iterator, currentIndex.longValue(),
 					Math.min(currentIndex.longValue() + blockSize, toExcluded), this.dictionary, blockSize, s, p, o);
-			current.destroy();
+			if (current != null)
+				current.destroy();
 			current = Block.transformBlock(b, dictionary, blockSize, s, p, o);
 			currentIndex.set(currentIndex.get() + b.getCount());
 			b.destroy();
