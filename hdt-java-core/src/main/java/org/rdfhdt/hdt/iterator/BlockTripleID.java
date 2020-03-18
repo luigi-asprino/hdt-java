@@ -11,7 +11,7 @@ public final class BlockTripleID {
 
 	private long[] subject, predicate, object;
 
-	final private List<TripleID> triples;
+	private List<TripleID> triples;
 
 	private int count = 0;
 
@@ -64,11 +64,11 @@ public final class BlockTripleID {
 		return r;
 	}
 
-	static BlockTripleID fetchBlock( IteratorTripleID iterator, final long from, final long toExcluded,
-			 DictionaryPFCOptimizedExtractor dictionary, final int blockSize, final CharSequence s,
-			final CharSequence p, final CharSequence o) {
+	static BlockTripleID fetchBlock(IteratorTripleID iterator, final long from, final long toExcluded,
+			DictionaryPFCOptimizedExtractor dictionary, final int blockSize, final CharSequence s, final CharSequence p,
+			final CharSequence o) {
 
-		 BlockTripleID r = new BlockTripleID(blockSize, s, p, o);
+		BlockTripleID r = new BlockTripleID(blockSize, s, p, o);
 		long j = from;
 		r.count = 0;
 		for (int i = 0; i < blockSize && iterator.hasNext() && j < toExcluded; i++, j++) {
@@ -109,6 +109,11 @@ public final class BlockTripleID {
 
 	public List<TripleID> getTriples() {
 		return triples;
+	}
+
+	public void destroy() {
+		subject = predicate = object = null;
+		triples = null;
 	}
 
 }

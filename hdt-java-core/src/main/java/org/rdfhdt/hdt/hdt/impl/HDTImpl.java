@@ -411,7 +411,7 @@ public class HDTImpl implements HDTPrivate {
 		}
 	}
 
-	public Stream<TripleString> stream(CharSequence subject, CharSequence predicate, CharSequence object)
+	public Stream<TripleString> stream(CharSequence subject, CharSequence predicate, CharSequence object, long from)
 			throws NotFoundException {
 //		IteratorTripleString its = search(subject, predicate, object);
 //		SpliteratorTripleString sts = new SpliteratorTripleString(its, its.estimatedNumResults());
@@ -430,17 +430,23 @@ public class HDTImpl implements HDTPrivate {
 		Spliterator<TripleString> spliterator = null;
 		if (!tripleIterator.canGoTo()) {
 			System.out.println("spliterator opt");
+			System.out.println("From argument ignored");
 			spliterator = new DictionaryTranslateSpliteratorOpt(triples.search(triple),
 					(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize);
 		} else {
 			System.out.println("spliterator can go to");
 			spliterator = new DictionaryTranslateSpliteratorOptCanGoTo(triples, triple,
-					(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize, 0,
+					(FourSectionDictionary) dictionary, subject, predicate, object, defaultBlockSize, from,
 					tripleIterator.estimatedNumResults());
 		}
 
 		return StreamSupport.stream(spliterator, true);
 
+	}
+
+	public Stream<TripleString> stream(CharSequence subject, CharSequence predicate, CharSequence object)
+			throws NotFoundException {
+		return stream(subject, predicate, object, 0);
 	}
 
 	/*

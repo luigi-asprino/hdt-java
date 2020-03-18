@@ -34,7 +34,6 @@ public final class Block implements Iterator<TripleString> {
 		this.o = o == null ? "" : o;
 
 		if (s.length() == 0) {
-//			mapSubject = new HashMap<>(blockSize);
 			mapSubject = Maps.newHashMapWithExpectedSize(blockSize);
 		}
 
@@ -47,8 +46,8 @@ public final class Block implements Iterator<TripleString> {
 		}
 	}
 
-	static void fill(DictionaryPFCOptimizedExtractor dictionary, long[] arr, final int count, Map<Long, CharSequence> map,
-			TripleComponentRole role) {
+	static void fill(DictionaryPFCOptimizedExtractor dictionary, long[] arr, final int count,
+			Map<Long, CharSequence> map, TripleComponentRole role) {
 
 		Arrays.sort(arr, 0, count);
 
@@ -124,7 +123,7 @@ public final class Block implements Iterator<TripleString> {
 		return r;
 	}
 
-	static Block transformBlock( BlockTripleID blockOriginal, DictionaryPFCOptimizedExtractor dictionary,
+	static Block transformBlock(BlockTripleID blockOriginal, DictionaryPFCOptimizedExtractor dictionary,
 			final int blockSize, final CharSequence s, final CharSequence p, final CharSequence o) {
 		Block r = new Block(blockSize, s, p, o);
 

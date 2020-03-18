@@ -44,10 +44,10 @@ import org.rdfhdt.hdt.triples.Triples;
 public class DictionaryTranslateSpliteratorOptCanGoTo implements Spliterator<TripleString> {
 
 	private final int blockSize;
-	private  Triples triples;
-	private  IteratorTripleID iterator;
-	private  DictionaryPFCOptimizedExtractor dictionary;
-	private  FourSectionDictionary originDictionary;
+	private Triples triples;
+	private IteratorTripleID iterator;
+	private DictionaryPFCOptimizedExtractor dictionary;
+	private FourSectionDictionary originDictionary;
 	private final CharSequence s, p, o;
 	private final TripleID searchedTriple;
 	private final long from;
@@ -82,7 +82,6 @@ public class DictionaryTranslateSpliteratorOptCanGoTo implements Spliterator<Tri
 	@Override
 	public boolean tryAdvance(Consumer<? super TripleString> action) {
 		if (current != null && current.hasNext()) {
-//			currentIndex.incrementAndGet();
 			action.accept(current.next());
 			return true;
 		}
@@ -90,8 +89,11 @@ public class DictionaryTranslateSpliteratorOptCanGoTo implements Spliterator<Tri
 		if (currentIndex.longValue() < toExcluded && (current == null || !current.hasNext())) {
 			BlockTripleID b = BlockTripleID.fetchBlock(iterator, currentIndex.longValue(),
 					Math.min(currentIndex.longValue() + blockSize, toExcluded), this.dictionary, blockSize, s, p, o);
+			current.destroy();
 			current = Block.transformBlock(b, dictionary, blockSize, s, p, o);
 			currentIndex.set(currentIndex.get() + b.getCount());
+			b.destroy();
+			b = null;
 			if (current != null && current.hasNext()) {
 				action.accept(current.next());
 				return true;
