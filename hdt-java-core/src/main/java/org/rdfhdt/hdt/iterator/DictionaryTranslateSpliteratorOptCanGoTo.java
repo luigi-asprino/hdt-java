@@ -101,6 +101,9 @@ public class DictionaryTranslateSpliteratorOptCanGoTo implements Spliterator<Tri
 			}
 		}
 
+		current.destroy();
+		current = null;
+
 		return false;
 	}
 

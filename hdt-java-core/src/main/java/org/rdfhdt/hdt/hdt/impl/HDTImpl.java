@@ -443,6 +443,28 @@ public class HDTImpl implements HDTPrivate {
 		return StreamSupport.stream(spliterator, true);
 
 	}
+	
+	public Spliterator<TripleString> spliterator(CharSequence subject, CharSequence predicate, CharSequence object,
+			long from, long to) {
+		if (isClosed) {
+			throw new IllegalStateException("Cannot search an already closed HDT");
+		}
+
+		// Conversion from TripleString to TripleID
+		TripleID triple = new TripleID(dictionary.stringToId(subject, TripleComponentRole.SUBJECT),
+				dictionary.stringToId(predicate, TripleComponentRole.PREDICATE),
+				dictionary.stringToId(object, TripleComponentRole.OBJECT));
+
+		IteratorTripleID tripleIterator = triples.search(triple);
+		if (!tripleIterator.canGoTo()) {
+			return new DictionaryTranslateSpliteratorOpt(triples.search(triple), (FourSectionDictionary) dictionary,
+					subject, predicate, object, defaultBlockSize);
+		} else {
+			return new DictionaryTranslateSpliteratorOptCanGoTo(triples, triple, (FourSectionDictionary) dictionary,
+					subject, predicate, object, defaultBlockSize, from, to);
+		}
+
+	}
 
 	public Stream<TripleString> stream(CharSequence subject, CharSequence predicate, CharSequence object)
 			throws NotFoundException {
